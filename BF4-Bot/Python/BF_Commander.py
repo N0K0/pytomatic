@@ -22,5 +22,8 @@ def use_UAV():
 def pause():
     print "Implement pause"
 
+def debug_out():
+    print "Implement debug_out"
+
 if __name__ == '__main__':
     mainLoop()
