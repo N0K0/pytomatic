@@ -50,7 +50,12 @@ WinSetState($winHandle,"",@SW_SHOW)
 WinActivate($winHandle)
 getRedPos(1000000000000000000)
 
+$iteration = 0
+
 while true
+
+   $iteration = $iteration + 1
+
    $activeWindow = WinGetHandle("[ACTIVE]")
    $mPos = MouseGetPos()
    WinActivate($winHandle)
@@ -58,7 +63,10 @@ while true
    useUav()
    useSpec()
 
-   orderSquads()
+   if Mod($iteration,25) == 0 Then
+	  orderSquads()
+   EndIf
+
    Sleep(1000)
 WEnd
 
@@ -67,7 +75,7 @@ WEnd
 func click($p,$key)
    ;_MouseClickPlus($Window, $Button = "left", $X = "", $Y = "", $Clicks = 1)
    $p = toCoord($p)
-   MouseClick($key,$p[0],$p[1],1,0)
+   MouseClick($key,$p[0],$p[1],1,4)
 
 EndFunc
 
@@ -88,6 +96,7 @@ func toCoord($p)
 EndFunc
 
 func orderSquads()
+    $delay = 200
    _DebugOut("Giving orders")
 
    $squad = Random(-2,8,1)
@@ -95,14 +104,16 @@ func orderSquads()
    $pos = $sPos
    $pos[1] = $pos[1]+$squadOffset*$squad
    click($pos,"left")
+   Sleep($delay)
    $tar = getRedPos()
    click($tar,"right")
+   Sleep($delay)
    offsetClick($tar,$giveOffset,"left")
 
 EndFunc
 
 func useSpec()
-   $delay = 100
+   $delay = 200
 
    $pos = getRedPos()
    click($pos,"right")
@@ -114,7 +125,7 @@ func useSpec()
 EndFunc
 
 func useUav()
-   $delay = 100
+   $delay = 200
    $pos = getRedPos()
 
    click($pos,"right")
