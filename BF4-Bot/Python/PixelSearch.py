@@ -22,4 +22,5 @@ def _init_window(hwnd):
     return gui.SetForeGroundWindow(hwnd)
 
 if __name__ == '__main__':
-    print _get_hwnd_by_title("Kalkulator")
+    hwnd = _get_hwnd_by_title("Kalkulator")
+    _init_window(hwnd)
