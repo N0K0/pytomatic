@@ -17,3 +17,7 @@ class PixelSearch:
 
 def _get_hwnd_by_title(title_text):
     return gui.FindWindow(None, title_text)
+
+
+if __name__ == '__main__':
+    print _get_hwnd_by_title("Kalkulator")
