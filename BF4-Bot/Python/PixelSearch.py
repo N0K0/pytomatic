@@ -19,7 +19,7 @@ def _get_hwnd_by_title(title_text):
     return gui.FindWindow(None, title_text)
 
 def _init_window(hwnd):
-    return gui.SetForeGroundWindow(hwnd)
+    return gui.SetForegroundWindow(hwnd)
 
 if __name__ == '__main__':
     hwnd = _get_hwnd_by_title("Kalkulator")
