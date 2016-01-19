@@ -3,14 +3,17 @@ import win32api
 
 class MouseMovement:
 
-    def click():
+    def click(self, x, y, type = "left", speed = 0):
         print "Implement click"
 
-    def offsetClick():
-        print "Implement offsetClick"
+    def offset_click(self, x, y, type = "left", speed = 0):
+        print "Implement offset_click"
 
-    def toCoord():
-        print "Implement toCoord"
+    def to_coord(self, pos_x, pos_y, win_x, win_y):
+        print "Implement to_coord"
+
+    def to_pixel(self, pos_x, pos_y, win_x, win_y):
+        print "Implement to_coord"
 
     def __init__(self,title = "Battlefield 4"):
         self.title = title
