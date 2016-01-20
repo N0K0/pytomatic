@@ -7,7 +7,7 @@ def f_click(pycwnd):
     l_param = win32api.MAKELONG(15,90)
     pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
     pycwnd.SendMessage(win32con.WM_RBUTTONDOWN, win32con.MK_RBUTTON, l_param);
-    time.sleep(0.2)
+    time.sleep(0.01)
     pycwnd.SendMessage(win32con.WM_RBUTTONUP, 0, l_param);
 
 
