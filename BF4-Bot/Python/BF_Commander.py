@@ -25,9 +25,9 @@ def debug_out():
 
 def test():
     mm = MouseMovement()
-    for i in range(1000):
-        coords = [i,i]
-        mm.click(coords)
+    coords = (0.1,0.1)
+    pos = mm.to_pixel(coords)
+    mm.click(pos,"right")
 
 if __name__ == '__main__':
     test()
