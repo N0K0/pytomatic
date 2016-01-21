@@ -11,10 +11,6 @@ def f_click(pycwnd):
     pycwnd.SendMessage(win32con.WM_RBUTTONUP, 0, l_param);
 
 
-def make_pycwnd(hwnd):
-
-    return PyCWnd
-
 hwnd = win32gui.FindWindowEx(0, 0, None, 'Battlefield 4')
 pyc_wnd = win32ui.CreateWindowFromHandle(hwnd)
 f_click(pyc_wnd)

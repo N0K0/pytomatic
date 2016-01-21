@@ -3,9 +3,7 @@ import win32api as api
 
 from MouseMovement import *
 from PixelSearch import *
-
-
-
+from time import sleep
 
 def main_loop():
     print "Implement main_loop"
@@ -25,5 +23,11 @@ def pause():
 def debug_out():
     print "Implement debug_out"
 
+def test():
+    mm = MouseMovement()
+    for i in range(1000):
+        coords = [i,i]
+        mm.click(coords)
+
 if __name__ == '__main__':
-    mainLoop()
+    test()
