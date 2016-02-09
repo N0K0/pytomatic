@@ -52,11 +52,13 @@ class MouseMovement:
 
         return (int(x),int(y))
 
+    def make_pyc_wnd(title = "Battlefield 4"):
+        self.hwnd = win32gui.FindWindowEx(0, 0, None, title)
+        self.pycwnd = win32ui.CreateWindowFromHandle(self.hwnd)
+        return self.pycwnd
 
     def __init__(self,title = "Battlefield 4"):
         self._last_x = 0
         self._last_y = 0
-        self.hwnd = win32gui.FindWindowEx(0, 0, None, title)
-        self.pycwnd = win32ui.CreateWindowFromHandle(self.hwnd)
+        make_pyc_wnd()
         self.window_size = self.pycwnd.GetWindowPlacement()[4]
-        print self.window_size

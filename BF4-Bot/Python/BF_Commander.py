@@ -29,5 +29,7 @@ def test():
     pos = mm.to_pixel(coords)
     mm.click(pos,"right")
 
+
+
 if __name__ == '__main__':
-    test()
+    pyc_wnd = make_pyc_wnd()
