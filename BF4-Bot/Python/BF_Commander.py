@@ -1,8 +1,10 @@
 import win32gui as gui
 import win32api as api
 
-from MouseMovement import *
-from PixelSearch import *
+import WindowHandlers
+import MouseMovement
+import PixelSearch
+
 from time import sleep
 
 def main_loop():
@@ -29,7 +31,7 @@ def test():
     pos = mm.to_pixel(coords)
     mm.click(pos,"right")
 
-
-
 if __name__ == '__main__':
-    pyc_wnd = make_pyc_wnd()
+    win_handler = WindowHandlers.win_handler()
+    pix_handler = PixelSearch.PixelSearch(win_handler)
+    pix_handler.grab_window()

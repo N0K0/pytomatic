@@ -1,33 +1,31 @@
 import win32gui as gui
 import win32api as api
 from PIL import ImageGrab
+import PIL
+import numpy
+
 
 class PixelSearch:
 
-    def __init__(self, title = "Battlefield 4"):
-        self.title = title
+    def __init__(self, win_handler = None):
+        self.wh = win_handler
 
-    def pixel_search():
+    def pixel_search(self):
         print "Implement pixel_search"
 
-    def grab_screen():
-
+    def grab_window(self):
+        self.wh.init_window(self.wh.hwnd)
+        temp_img = ImageGrab.grab(self.wh.create_boundingbox(self.wh.hwnd))
+        temp_img.save('test.jpg','JPEG')
+        self.last_image = temp_img
         print "Implement grab_screen"
 
-    def get_red_pos(maxTry = 10):
+
+    def get_red_pos(self,maxTry = 10):
+
         print "Implement get_red_pos"
 
-def _get_hwnd_by_title(title_text):
-    return gui.FindWindow(None, title_text)
-
-def _init_window(hwnd):
-    return gui.SetForegroundWindow(hwnd)
-
-def _create_boundingbox(hwnd):
-    self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
-    return self.pycwnd
-
+        return bbox
 
 if __name__ == '__main__':
     hwnd = _get_hwnd_by_title("Calculator")
-    _init_window(hwnd)
