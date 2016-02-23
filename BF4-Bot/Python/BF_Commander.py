@@ -4,6 +4,7 @@ import win32api as api
 import WindowHandlers
 import MouseMovement
 import PixelSearch
+import numpy
 
 from time import sleep
 
@@ -32,6 +33,9 @@ def test():
     mm.click(pos,"right")
 
 if __name__ == '__main__':
+    numpy.set_printoptions(formatter={'int':hex})
     win_handler = WindowHandlers.win_handler()
     pix_handler = PixelSearch.PixelSearch(win_handler)
-    pix_handler.grab_window()
+    img = pix_handler.grab_window()
+    img = pix_handler.img_to_numpy(img)
+    print img[600:610,300:310]

@@ -21,7 +21,15 @@ class PixelSearch:
         return temp_img
 
     def img_to_numpy(self,image):
+        array = numpy.array(image)
+        return self.RGB_to_Hex(array)
 
+    def find_pixel_in_array(self, numpy_array, color,shades = 0):
+        print "Implement pixel in array"
+
+    def RGB_to_Hex(self, numpy_array):
+        array = numpy.asarray(numpy_array, dtype='uint32')
+        return ((array[:, :, 0]<<16) + (array[:, :, 1]<<8) + array[:, :, 2])
 
 
     def get_red_pos(self,maxTry = 10):
