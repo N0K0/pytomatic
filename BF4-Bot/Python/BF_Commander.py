@@ -10,21 +10,27 @@ from time import sleep
 
 def main_loop():
     print "Implement main_loop"
+    raise NotImplementedError
 
 def order_squads():
     print "Implement order_squads"
+    raise NotImplementedError
 
 def use_spec():
     print "Implement use_spec"
+    raise NotImplementedError
 
 def use_UAV():
     print "Implement use_UAV"
+    raise NotImplementedError
 
 def pause():
     print "Implement pause"
+    raise NotImplementedError
 
 def debug_out():
     print "Implement debug_out"
+    raise NotImplementedError
 
 def test():
     mm = MouseMovement()

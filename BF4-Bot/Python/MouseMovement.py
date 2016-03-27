@@ -7,6 +7,20 @@ import time
 class MouseMovement:
 
     def click(self, coords, button = "left"):
+        '''
+        Args:
+            coords (touple): coords takes two arguments, either both float
+                or int. If float is supplied, it will try to treat them as
+                percentages.
+            button (string): either "left" or "right". Decides what button that
+                will be sent to the running program.
+
+        Returns:
+            bool: True if successful, False otherwise.
+
+        Raises:
+            SyntaxError: The button param does not contain "left" or "right"
+        '''
 
         print coords
 
@@ -25,7 +39,7 @@ class MouseMovement:
             _button_down = win32con.WM_LBUTTONDOWN
             _button_up = win32con.WM_LBUTTONUP
         else:
-            return 1
+            raise SyntaxError('Button needs to contain either "left" or "right"')
 
         l_param = win32api.MAKELONG(x,y)
         self.pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
@@ -35,16 +49,40 @@ class MouseMovement:
 
         self._last_x = x
         self._last_y = y
-        return 0
+        return True
 
     def offset_click(self, x, y, button = "left"):
-        self.click([coords[0] + x, coords[1] + y], button)
+        '''
+        Args:
+            x (int): The offset in the left/right direction
+            y (int): The offset in the up/down direction
+            button (string): either "left" or "right". Decides what button that
+                will be sent to the running program.
+        Returns:
+            bool: True if successful, False otherwise.
+
+        Raises:
+            SyntaxError: The button param does not contain "left" or "right"
+        '''
+
+        return self.click([coords[0] + x, coords[1] + y], button)
 
 
     def to_coord(self, pos_x, pos_y):
         print "Implement to_coord"
+        raise NotImplementedError
+
 
     def to_pixel(self, coords):
+        '''
+        Args:
+            coords (touple): a pair of floating point numbers between 0.0 and 1.0
+                representing a percentage of the screen in the x/y directions
+        Returns:
+            touple: a pair of integers representing the actual coordinates in
+                the form of pixels
+        '''
+        
         self.window_size = self.pycwnd.GetWindowPlacement()[4]
         size_vert = int(self.window_size[3]-self.window_size[1])
         size_horiz = int(self.window_size[2]-self.window_size[0])
