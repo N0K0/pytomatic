@@ -5,6 +5,7 @@ import WindowHandlers
 import MouseMovement
 import PixelSearch
 import numpy
+import logging
 
 from time import sleep
 
@@ -31,6 +32,7 @@ def pause():
 def debug_out():
     print "Implement debug_out"
     raise NotImplementedError
+
 
 def test():
     mm = MouseMovement()

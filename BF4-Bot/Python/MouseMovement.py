@@ -3,6 +3,7 @@ import win32api
 import win32ui
 import win32con
 import time
+import logging
 
 class MouseMovement:
 
@@ -12,14 +13,14 @@ class MouseMovement:
             coords (touple): coords takes two arguments, either both float
                 or int. If float is supplied, it will try to treat them as
                 percentages.
-            button (string): either "left" or "right". Decides what button that
+            button (string): either "left","right" or "middle". Decides what button that
                 will be sent to the running program.
 
         Returns:
             bool: True if successful, False otherwise.
 
         Raises:
-            SyntaxError: The button param does not contain "left" or "right"
+            SyntaxError: The button param does not contain "left","right og "middle"
         '''
 
         print coords
@@ -38,8 +39,12 @@ class MouseMovement:
             _button_state = win32con.MK_LBUTTON
             _button_down = win32con.WM_LBUTTONDOWN
             _button_up = win32con.WM_LBUTTONUP
+        elif "middle" in button.lower():
+            _button_state = win32con.MK_MBUTTON
+            _button_down = win32con.WM_MBUTTONDOWN
+            _button_up = win32con.WM_MBUTTONUP
         else:
-            raise SyntaxError('Button needs to contain either "left" or "right"')
+            raise SyntaxError('Button needs to contain "left", "right" or "middle"')
 
         l_param = win32api.MAKELONG(x,y)
         self.pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
@@ -82,7 +87,7 @@ class MouseMovement:
             touple: a pair of integers representing the actual coordinates in
                 the form of pixels
         '''
-        
+
         self.window_size = self.pycwnd.GetWindowPlacement()[4]
         size_vert = int(self.window_size[3]-self.window_size[1])
         size_horiz = int(self.window_size[2]-self.window_size[0])

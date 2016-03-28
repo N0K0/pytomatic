@@ -3,6 +3,7 @@ import win32api as api
 from PIL import ImageGrab
 import PIL
 import numpy
+import logging
 
 
 class PixelSearch:
