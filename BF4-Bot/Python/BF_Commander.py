@@ -9,6 +9,8 @@ import logging
 
 from time import sleep
 
+numpy.set_printoptions(formatter={'int':hex})
+
 def main_loop():
     print "Implement main_loop"
     raise NotImplementedError
@@ -41,9 +43,9 @@ def test():
     mm.click(pos,"right")
 
 if __name__ == '__main__':
-    numpy.set_printoptions(formatter={'int':hex})
+
     win_handler = WindowHandlers.win_handler()
     pix_handler = PixelSearch.PixelSearch(win_handler)
     img = pix_handler.grab_window()
     img = pix_handler.img_to_numpy(img)
-    print img[600:610,300:310]
+    targets = pix_handler.find_pixel_in_array(img,0xf7f7f7L,5)

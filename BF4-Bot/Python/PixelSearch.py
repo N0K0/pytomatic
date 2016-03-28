@@ -3,8 +3,12 @@ import win32api as api
 from PIL import ImageGrab
 import PIL
 import numpy
+import numpy.ma as masked_array
 import logging
+import sys
 
+FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 class PixelSearch:
 
@@ -13,8 +17,19 @@ class PixelSearch:
 
     def pixel_search(self):
         print "Implement pixel_search"
+        raise NotImplementedError
 
     def grab_window(self):
+        '''
+        Grabs the window and returns a image based on the on a hwnd and the
+            bounding box that follows.
+
+        Returns:
+            PIL.Image: Returns the imagedata grabbed by pillow
+        '''
+
+        logging.debug("Trying to capture window")
+
         self.wh.init_window(self.wh.hwnd)
         temp_img = ImageGrab.grab(self.wh.create_boundingbox(self.wh.hwnd))
         temp_img.save('test.jpg','JPEG')
@@ -22,19 +37,67 @@ class PixelSearch:
         return temp_img
 
     def img_to_numpy(self,image):
+        '''
+        Converts an PIL.Image object to a numpy array and then collapses the
+            array into an rgb array
+
+        Args:
+            image (PIL.image): the image object to be converted
+
+        Returns:
+            A 2d array with x*y elements. Each element represent a pixel with
+            an RGB value. For example 0xab01ee  -> RGB (171,1,238)
+        '''
+
         array = numpy.array(image)
-        return self.RGB_to_Hex(array)
+        array = self.RGB_to_Hex(array)
+        print array
+        return array
 
     def find_pixel_in_array(self, numpy_array, color,shades = 0):
-        print "Implement pixel in array"
+        '''
+        Creates a bool array where values whose match color withing n shades are
+            marked true.
+
+        Args:
+            numpy_array (NDarray): The array we are going to search.
+
+            color (numpy.uint32): The color we are looking for.
+
+            shades (int): Defines the tolerance per rgb color which still
+                evaluates to True
+
+        Returns:
+            A boolean array where the pixels that has aproximate the value of
+                color is set to True
+
+        '''
+
+        aprox = numpy.vectorize(self.aproximate_color)
+
+        array = aprox(numpy_array,color,shades)
+
+        #array = self.aproximate_color(numpy_array,color,shades)
+
+        print array
+        return array
+
+    def aproximate_color(self,target,found,shade):
+
+        red = abs((found>>16) - (target>>16)) <= shade
+        green = abs((found>>8)&0x0000FF - (target>>8)&0x0000FF) <= shade
+        blue = abs(found&0x0000FF - target&0x0000FF)<= shade
+        
+        return red and green and blue
+
 
     def RGB_to_Hex(self, numpy_array):
+        logging.debug("Converting numpy_array to RGB")
         array = numpy.asarray(numpy_array, dtype='uint32')
         return ((array[:, :, 0]<<16) + (array[:, :, 1]<<8) + array[:, :, 2])
 
 
     def get_red_pos(self,maxTry = 10):
-
         print "Implement get_red_pos"
 
         return bbox

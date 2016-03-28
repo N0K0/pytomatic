@@ -42,6 +42,7 @@ class win_handler:
         '''
         logging.debug("Make pyc hwnd with handle %d" % hwnd)
         if hwnd == -1:
+            logging.debug("Hwnd not supplied, using %d instead" % self.hwnd)
             hwnd = self.hwnd
         self.pycwnd = win32ui.CreateWindowFromHandle(self.hwnd)
         self.pycwnd
