@@ -1,7 +1,8 @@
 import logging
 import sys
-
 import numpy
+from ConfigParser import SafeConfigParser
+
 from PIL import ImageGrab
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
@@ -10,8 +11,31 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 class PixelSearch:
     def __init__(self, win_handler=None):
+        config = SafeConfigParser()
+        config.read('config.ini')
+
         self.last_image = None
         self.wh = win_handler
+
+        self.score_box = config.get('PixelScan','ScoreBox').split(',')
+        self.score_box = map(float,self.score_box)
+
+    def wipe_scorebox(self,score_box = None,numpy_image = None):
+        if(score_box == None):
+            score_box = self.score_box
+
+        score_box = self.wh.create_boundingbox_from_coords(score_box)
+
+        numpy_image[score_box[0]:score_box[2],score_box[1]:score_box[3]] = 0x0
+
+        return
+
+
+
+
+
+
+
 
     def pixel_search(self):
         print "Implement pixel_search"
@@ -49,6 +73,7 @@ class PixelSearch:
 
         array = numpy.array(image)
         array = self.RGB_to_Hex(array)
+        array = self.wipe_scorebox(self.score_box,array)
         print array
         return array
 

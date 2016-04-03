@@ -4,6 +4,8 @@ import MouseMovement
 import PixelSearch
 import WindowHandlers
 
+from ConfigParser import SafeConfigParser
+
 numpy.set_printoptions(formatter={'int': hex})
 
 
@@ -46,6 +48,8 @@ def test():
 
 
 if __name__ == '__main__':
+
+
     win_handler = WindowHandlers.WinHandler()
     pix_handler = PixelSearch.PixelSearch(win_handler)
     img = pix_handler.grab_window()

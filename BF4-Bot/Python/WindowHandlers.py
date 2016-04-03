@@ -3,6 +3,7 @@ import win32gui
 import win32ui
 import logging
 import sys
+import GeneralHelpers
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -48,7 +49,7 @@ class WinHandler:
         self.pycwnd
         return self.pycwnd
 
-    def init_window(self, hwnd=-1):
+    def init_window(self, hwnd= None):
         """
         At the moment only sets the window in the foreground.
 
@@ -62,7 +63,7 @@ class WinHandler:
                 return value is zero.
         """
 
-        if hwnd == -1:
+        if hwnd == None:
             hwnd = self.hwnd
         return win32gui.SetForegroundWindow(hwnd)
 
@@ -86,6 +87,16 @@ class WinHandler:
         self.bbox = win32gui.GetWindowRect(hwnd)
         logging.debug('Found %s' % ','.join(map(str, self.bbox)))
         return self.bbox
+
+    def create_boundingbox_from_coords(self,coords, hwnd = None):
+
+        if not hwnd:
+            hwnd = self.hwnd
+
+        bounding_box = self.create_boundingbox(hwnd)
+        bounding_box = coords[0]*bounding_box[2],coords[1]*bounding_box[3],coords[2]*bounding_box[2],coords[3]*bounding_box[3]
+        bounding_box = map(int,bounding_box)
+        return bounding_box
 
     def __init__(self):
 
