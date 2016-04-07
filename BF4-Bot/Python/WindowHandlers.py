@@ -102,11 +102,13 @@ class WinHandler:
 
         parser = SafeConfigParser()
         parser.read('config.ini')
-
         self.title = parser.get('general', 'winTitle')
         self.hwnd = self.get_hwnd_by_title(self.title)
         self.pycwnd = self.make_pyc_wnd(self.hwnd)
         self.bbox = self.create_boundingbox(self.hwnd)
+
+    def get_title(self):
+        return self.title
 
 
 if __name__ == '__main__':

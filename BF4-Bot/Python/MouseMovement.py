@@ -91,7 +91,9 @@ class MouseMovement:
 
         return int(x), int(y)
 
-    def __init__(self, title="Battlefield 4"):
+    def __init__(self, window_handler):
         self._last_x = 0
         self._last_y = 0
-        self.window_size = self.pycwnd.GetWindowPlacement()[4]
+        self._win_handler = window_handler
+        self._pycwnd = self._win_handler.get_pycwnd()
+        self.window_size = self._pycwnd.GetWindowPlacement()[4]
