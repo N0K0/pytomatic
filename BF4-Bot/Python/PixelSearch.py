@@ -17,16 +17,16 @@ class PixelSearch:
         self.last_image = None
         self.wh = win_handler
 
-        self.score_box = config.get('PixelScan','ScoreBox').split(',')
-        self.score_box = map(float,self.score_box)
+        self.score_box = config.get('PixelScan', 'ScoreBox').split(',')
+        self.score_box = map(float, self.score_box)
 
-    def wipe_scorebox(self,score_box = None,numpy_image = None):
+    def wipe_scorebox(self, score_box=None, numpy_image=None):
         if score_box is None:
             score_box = self.score_box
 
         score_box = self.wh.create_boundingbox_from_coords(score_box)
 
-        numpy_image[score_box[0]:score_box[2],score_box[1]:score_box[3]] = 0x0
+        numpy_image[score_box[0]:score_box[2], score_box[1]:score_box[3]] = 0x0
 
         return numpy_image
 
@@ -66,7 +66,7 @@ class PixelSearch:
 
         array = numpy.array(image)
         array = self.RGB_to_Hex(array)
-        array = self.wipe_scorebox(self.score_box,array)
+        array = self.wipe_scorebox(self.score_box, array)
         return array
 
     def find_pixel_in_array(self, numpy_array, color, shades=0):

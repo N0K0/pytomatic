@@ -3,6 +3,7 @@ import win32api
 import win32con
 import logging
 import sys
+
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
@@ -24,7 +25,7 @@ class MouseMovement:
             SyntaxError: The button param does not contain "left","right og "middle"
         """
 
-        logging.debug("Trying to click on:" +coords + "with " + button + "button")
+        logging.debug("Trying to click on:" + coords + "with " + button + "button")
 
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)

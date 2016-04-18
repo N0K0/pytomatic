@@ -51,7 +51,7 @@ class WinHandler:
         self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
         return self.pycwnd
 
-    def init_window(self, hwnd=None,pos = None):
+    def init_window(self, hwnd=None, pos=None):
         """
         At the moment only sets the window in the foreground.
 
@@ -65,7 +65,7 @@ class WinHandler:
                 return value is zero.
         """
 
-        if hwnd == None:
+        if hwnd is None:
             hwnd = self.hwnd
 
         if pos is None:
@@ -74,7 +74,7 @@ class WinHandler:
             pos = config.get('general', 'winPos').split(',')
             pos = map(int, pos)
         win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL | win32con.SW_RESTORE)
-        win32gui.MoveWindow(hwnd,pos[0],pos[1],pos[2],pos[3],2)
+        win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 2)
         return win32gui.SetForegroundWindow(hwnd)
 
     def create_boundingbox(self, hwnd=-1):
@@ -98,14 +98,15 @@ class WinHandler:
         logging.debug('Found %s' % ','.join(map(str, self.bbox)))
         return self.bbox
 
-    def create_boundingbox_from_coords(self,coords, hwnd = None):
+    def create_boundingbox_from_coords(self, coords, hwnd=None):
 
         if not hwnd:
             hwnd = self.hwnd
 
         bounding_box = self.create_boundingbox(hwnd)
-        bounding_box = coords[0]*bounding_box[2],coords[1]*bounding_box[3],coords[2]*bounding_box[2],coords[3]*bounding_box[3]
-        bounding_box = map(int,bounding_box)
+        bounding_box = coords[0] * bounding_box[2], coords[1] * bounding_box[3], coords[2] * bounding_box[2], coords[
+            3] * bounding_box[3]
+        bounding_box = map(int, bounding_box)
         return bounding_box
 
     def get_bbox(self):
@@ -113,7 +114,7 @@ class WinHandler:
             return self.create_boundingbox()
         return self.bbox
 
-    def __init__(self,title = None):
+    def __init__(self, title=None):
 
         parser = SafeConfigParser()
         parser.read('config.ini')
