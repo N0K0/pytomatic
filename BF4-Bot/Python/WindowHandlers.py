@@ -4,7 +4,6 @@ import win32ui
 import win32con
 import logging
 import sys
-import GeneralHelpers
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -24,7 +23,6 @@ class WinHandler:
             win32.error: If the windowtitle is invalid
 
         """
-        print title_text
         logging.debug("Where supplied title: " + title_text)
         self.hwnd = win32gui.FindWindow(None, title_text)
         return self.hwnd
@@ -46,8 +44,11 @@ class WinHandler:
         if hwnd == -1:
             logging.debug("Hwnd not supplied, using %d instead" % self.hwnd)
             hwnd = self.hwnd
+
+        if hwnd == 0:
+            raise ValueError('Hwnd is not a valid handle')
+
         self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
-        self.pycwnd
         return self.pycwnd
 
     def init_window(self, hwnd=None,pos = None):

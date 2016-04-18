@@ -21,21 +21,14 @@ class PixelSearch:
         self.score_box = map(float,self.score_box)
 
     def wipe_scorebox(self,score_box = None,numpy_image = None):
-        if(score_box == None):
+        if score_box is None:
             score_box = self.score_box
 
         score_box = self.wh.create_boundingbox_from_coords(score_box)
 
         numpy_image[score_box[0]:score_box[2],score_box[1]:score_box[3]] = 0x0
 
-        return
-
-
-
-
-
-
-
+        return numpy_image
 
     def pixel_search(self):
         print "Implement pixel_search"
@@ -74,7 +67,6 @@ class PixelSearch:
         array = numpy.array(image)
         array = self.RGB_to_Hex(array)
         array = self.wipe_scorebox(self.score_box,array)
-        print array
         return array
 
     def find_pixel_in_array(self, numpy_array, color, shades=0):
@@ -123,5 +115,5 @@ class PixelSearch:
     @staticmethod
     def get_red_pos(max_try=10):
         print "Implement get_red_pos"
-
+        bbox = None
         return bbox

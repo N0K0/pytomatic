@@ -4,7 +4,7 @@ import MouseMovement
 import PixelSearch
 import WindowHandlers
 
-from ConfigParser import SafeConfigParser
+#from ConfigParser import SafeConfigParser
 
 numpy.set_printoptions(formatter={'int': hex})
 
@@ -40,23 +40,12 @@ class CommandAndControl:
     def get_win_handler(self):
         return self._win_handler
 
-    def test(self):
-        img = self._pix_handler.grab_window()
-        img = self._pix_handler.img_to_numpy(img)
-        mm = MouseMovement()
-        coords = (0.1, 0.1)
-        pos = mm.to_pixel(coords)
-        mm.click(pos, "right")
-
     def __init__(self):
 
         self._win_handler = WindowHandlers.WinHandler()
         self._pix_handler = PixelSearch.PixelSearch(self._win_handler)
         self._mouse_handler = MouseMovement.MouseMovement(self._win_handler)
 
-        #img = pix_handler.grab_window()
-        #img = pix_handler.img_to_numpy(img)
-        #targets = self._pix_handler.find_pixel_in_array(img, 0xf7f7f7L, 5)
 
 if __name__ == '__main__':
 

@@ -1,7 +1,10 @@
 import time
 import win32api
-
 import win32con
+import logging
+import sys
+FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 
 class MouseMovement:
@@ -21,7 +24,7 @@ class MouseMovement:
             SyntaxError: The button param does not contain "left","right og "middle"
         """
 
-        print coords
+        logging.debug("Trying to click on:" +coords + "with " + button + "button")
 
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
@@ -45,10 +48,10 @@ class MouseMovement:
             raise SyntaxError('Button needs to contain "left", "right" or "middle"')
 
         l_param = win32api.MAKELONG(x, y)
-        self.pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
-        self.pycwnd.SendMessage(_button_down, _button_state, l_param)
+        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
+        self._pycwnd.SendMessage(_button_down, _button_state, l_param)
         time.sleep(0.2)
-        self.pycwnd.SendMessage(_button_up, 0, l_param)
+        self._pycwnd.SendMessage(_button_up, 0, l_param)
 
         self._last_x = x
         self._last_y = y
@@ -84,7 +87,7 @@ class MouseMovement:
                 the form of pixels
         """
 
-        self.window_size = self.pycwnd.GetWindowPlacement()[4]
+        self.window_size = self._pycwnd.GetWindowPlacement()[4]
         size_vert = int(self.window_size[3] - self.window_size[1])
         size_horiz = int(self.window_size[2] - self.window_size[0])
         x, y = coords[0] * size_horiz, coords[1] * size_vert
