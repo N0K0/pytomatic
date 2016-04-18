@@ -1,6 +1,7 @@
 from ConfigParser import SafeConfigParser
 import win32gui
 import win32ui
+import win32con
 import logging
 import sys
 import GeneralHelpers
@@ -49,14 +50,14 @@ class WinHandler:
         self.pycwnd
         return self.pycwnd
 
-    def init_window(self, hwnd= None):
+    def init_window(self, hwnd=None,pos = None):
         """
         At the moment only sets the window in the foreground.
 
         Args:
             hwnd (int): the window handle to "initialize". If not supplied
                 the hwnd from the last get_hwnd_by_title will be used
-
+            pos (tuple): a tuple describing the X,Y,Height and Width of the window
         Returns:
             If the window was brought to the foreground, the return value is
                 nonzero. If the window was not brought to the foreground, the
@@ -65,6 +66,14 @@ class WinHandler:
 
         if hwnd == None:
             hwnd = self.hwnd
+
+        if pos is None:
+            config = SafeConfigParser()
+            config.read('config.ini')
+            pos = config.get('general', 'winPos').split(',')
+            pos = map(int, pos)
+        win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL | win32con.SW_RESTORE)
+        win32gui.MoveWindow(hwnd,pos[0],pos[1],pos[2],pos[3],2)
         return win32gui.SetForegroundWindow(hwnd)
 
     def create_boundingbox(self, hwnd=-1):
@@ -98,14 +107,27 @@ class WinHandler:
         bounding_box = map(int,bounding_box)
         return bounding_box
 
-    def __init__(self):
+    def get_bbox(self):
+        if self.bbox is None:
+            return self.create_boundingbox()
+        return self.bbox
+
+    def __init__(self,title = None):
 
         parser = SafeConfigParser()
         parser.read('config.ini')
-        self.title = parser.get('general', 'winTitle')
+
+        if title is None:
+            self.title = parser.get('general', 'winTitle')
+        else:
+            self.title = title
+
         self.hwnd = self.get_hwnd_by_title(self.title)
         self.pycwnd = self.make_pyc_wnd(self.hwnd)
-        self.bbox = self.create_boundingbox(self.hwnd)
+        self.bbox = None
+
+    def get_pycwnd(self):
+        return self.pycwnd
 
     def get_title(self):
         return self.title
