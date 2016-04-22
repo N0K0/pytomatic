@@ -34,7 +34,7 @@ class PixelSearch:
         print "Implement pixel_search"
         raise NotImplementedError
 
-    def grab_window(self):
+    def grab_window(self,file = None):
         """
         Grabs the window and returns a image based on the on a hwnd and the
             bounding box that follows.
@@ -45,13 +45,15 @@ class PixelSearch:
 
         logging.debug("Trying to capture window")
 
-        self.wh.init_window(self.wh.hwnd)
+        #self.wh.init_window(self.wh.hwnd) #Dont need this line. The user should fix this himself
         temp_img = ImageGrab.grab(self.wh.create_boundingbox(self.wh.hwnd))
-        temp_img.save('test.jpg', 'JPEG')
+        if file is not None:
+            temp_img.save(file, 'JPEG')
+
         self.last_image = temp_img
         return temp_img
 
-    def img_to_numpy(self, image):
+    def img_to_numpy(self, image,compound = False):
         """
         Converts an PIL.Image object to a numpy array and then collapses the
             array into an rgb array
@@ -60,13 +62,15 @@ class PixelSearch:
             image (PIL.image): the image object to be converted
 
         Returns:
-            A 2d array with x*y elements. Each element represent a pixel with
-            an RGB value. For example 0xab01ee  -> RGB (171,1,238)
+            A 2d/3d array with x*y elements. Each element represent a pixel with
+            an RGB value. For example 0xab01ee  -> RGB (171,1,238) or simply by
+            having R G B as the third dimension of the matrix
         """
 
         array = numpy.array(image)
-        array = self.RGB_to_Hex(array)
-        array = self.wipe_scorebox(self.score_box, array)
+        if compound:
+            array = self.RGB_to_Hex(array)
+
         return array
 
     def find_pixel_in_array(self, numpy_array, color, shades=0):
@@ -87,6 +91,9 @@ class PixelSearch:
                 color is set to True
 
         """
+
+        print "Shape " +numpy_array.shape
+
 
         aprox = numpy.vectorize(self.aproximate_color)
 

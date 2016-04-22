@@ -104,8 +104,8 @@ class WinHandler:
             hwnd = self.hwnd
 
         bounding_box = self.create_boundingbox(hwnd)
-        bounding_box = coords[0] * bounding_box[2], coords[1] * bounding_box[3], coords[2] * bounding_box[2], coords[
-            3] * bounding_box[3]
+        bounding_box = coords[0] * bounding_box[2], coords[1] * bounding_box[3], coords[2] * bounding_box[2], \
+            coords[3] * bounding_box[3]
         bounding_box = map(int, bounding_box)
         return bounding_box
 
