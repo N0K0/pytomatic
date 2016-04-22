@@ -4,6 +4,10 @@ import sys
 from BF_Commander import CommandAndControl
 from ConfigParser import SafeConfigParser
 import logging
+import WindowHandlers as wh
+import PixelSearch as ps
+from PIL import Image
+from time import sleep
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -41,20 +45,19 @@ class TestCommander(unittest.TestCase):
 
     def test_pixel_search(self):
         logging.debug("Running pixel search test")
-        import WindowHandlers as wh
-        import PixelSearch as ps
-        import PIL
-        from time import sleep
+
         win_handler =  wh.WinHandler('Kalkulator')
         pixel_search = ps.PixelSearch(win_handler)
         win_handler.init_window(pos=[0,0,320,510])
         sleep(1)
-
-        file = pixel_search.grab_window()
-
-pixel_search.grab_window("test_grab.jpg")
+        pixel_search.grab_window('pixel_search.png')
 
 
+        file = pixel_search.grab_window('pixel_search.png')
+        im = Image.open('pixel_search_sample.png')
+        im = Image.Image.crop(im,(0,0,20,20))
+        im.load()
+        im.save("test_2.png")
 
 if __name__ == '__main__':
     unittest.main()

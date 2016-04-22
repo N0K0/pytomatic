@@ -48,7 +48,7 @@ class PixelSearch:
         #self.wh.init_window(self.wh.hwnd) #Dont need this line. The user should fix this himself
         temp_img = ImageGrab.grab(self.wh.create_boundingbox(self.wh.hwnd))
         if file is not None:
-            temp_img.save(file, 'JPEG')
+            temp_img.save(file)
 
         self.last_image = temp_img
         return temp_img
