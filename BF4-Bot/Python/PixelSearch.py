@@ -40,7 +40,7 @@ class PixelSearch:
             bounding box that follows.
 
         Returns:
-            PIL.Image: Returns the imagedata grabbed by pillow
+            PIL.Image.Image: Returns the imagedata grabbed by pillow
         """
 
         logging.debug("Trying to capture window")
@@ -48,6 +48,7 @@ class PixelSearch:
         #self.wh.init_window(self.wh.hwnd) #Dont need this line. The user should fix this himself
         temp_img = ImageGrab.grab(self.wh.create_boundingbox(self.wh.hwnd))
         if file is not None:
+            logging.debug("Saving image as {}".format(file))
             temp_img.save(file)
 
         self.last_image = temp_img
@@ -92,7 +93,7 @@ class PixelSearch:
 
         """
 
-        print "Shape " +numpy_array.shape
+
 
 
         aprox = numpy.vectorize(self.aproximate_color)

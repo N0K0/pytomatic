@@ -55,9 +55,16 @@ class TestCommander(unittest.TestCase):
 
         file = pixel_search.grab_window('pixel_search.png')
         im = Image.open('pixel_search_sample.png')
-        im = Image.Image.crop(im,(0,0,20,20))
+        im = Image.Image.crop(im,(20,20,200,200))
         im.load()
         im.save("test_2.png")
+        im2 = Image.Image.crop(file,(20,20,200,200))
+        im2.load()
+        im2.save("test_3.png")
+
+        mat1 = im.tobytes()
+        mat2 = im2.tobytes()
+        assert(mat1 == mat2)
 
 if __name__ == '__main__':
     unittest.main()
