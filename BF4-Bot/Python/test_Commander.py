@@ -6,8 +6,10 @@ from ConfigParser import SafeConfigParser
 import logging
 import WindowHandlers as wh
 import PixelSearch as ps
+import MouseMovement as mm
 from PIL import Image
 from time import sleep
+import numpy as np
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -43,7 +45,7 @@ class TestCommander(unittest.TestCase):
         assert (title is "Battlefield 4")
         assert (win32gui.FindWindow(None, title) == cnc.get_win_handler().get_hwnd_by_title(title))
 
-    def test_pixel_search(self):
+    def test_window_grab(self):
         logging.debug("Running pixel search test")
 
         win_handler =  wh.WinHandler('Kalkulator')
@@ -63,6 +65,32 @@ class TestCommander(unittest.TestCase):
         mat1 = im.tobytes()
         mat2 = im2.tobytes()
         assert(mat1 == mat2)
+
+    def test_pixel_search(self):
+        logging.debug("Running pixelsearch test")
+        win_handler = wh.WinHandler('Kalkulator')
+        pixel_search = ps.PixelSearch(win_handler)
+        win_handler.init_window(pos=[0, 0, 320, 510])
+        sleep(1)
+        im = Image.open('pixel_search_sample.png')
+        array = np.array(im)
+        print array
+
+    def test_basic_commander(self):
+        logging.debug("Running a basic test of the commander functions")
+
+        win_handler = wh.WinHandler()
+        pixel_search = ps.PixelSearch(win_handler)
+        mouse_handler = mm.MouseMovement(win_handler)
+
+        bbox = win_handler.get_bbox()
+        bbox_size = win_handler.get_bbox_size()
+        win_handler.init_window()
+
+        mouse_handler.click((0.5,0.5),'right')
+        sleep(2)
+        mouse_handler.offset_click(-0.1,0.1)
+
 
 if __name__ == '__main__':
     unittest.main()

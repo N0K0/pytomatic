@@ -25,6 +25,10 @@ class WinHandler:
         """
         logging.debug("Where supplied title: " + title_text)
         self.hwnd = win32gui.FindWindow(None, title_text)
+
+        if self.hwnd == 0:
+            raise ValueError('Unable to find a window with that title')
+
         return self.hwnd
 
     def make_pyc_wnd(self, hwnd=-1):
@@ -46,7 +50,7 @@ class WinHandler:
             hwnd = self.hwnd
 
         if hwnd == 0:
-            raise ValueError('Hwnd is not a valid handle')
+            raise ValueError('Hwnd is not a valid handle or window not found')
 
         self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
         return self.pycwnd
@@ -68,13 +72,16 @@ class WinHandler:
         if hwnd is None:
             hwnd = self.hwnd
 
+        logging.debug("Init window (%s)" % str(hwnd))
+
         if pos is None:
             config = SafeConfigParser()
             config.read('config.ini')
             pos = config.get('general', 'winPos').split(',')
             pos = map(int, pos)
+
         win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL | win32con.SW_RESTORE)
-        win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 2)
+        win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
         return win32gui.SetForegroundWindow(hwnd)
 
     def create_boundingbox(self, hwnd=-1):
@@ -113,6 +120,13 @@ class WinHandler:
         if self.bbox is None:
             return self.create_boundingbox()
         return self.bbox
+
+    def get_bbox_size(self, bbox = None):
+        if bbox is None:
+            bbox = self.get_bbox()
+        bbox_size = bbox[2]-bbox[0],bbox[3]-bbox[1]
+        logging.debug('Found following size: %d, %d' % (bbox[2]-bbox[0], bbox[3]-bbox[1]))
+        return bbox_size
 
     def __init__(self, title=None):
 

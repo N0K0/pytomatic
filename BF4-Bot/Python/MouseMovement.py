@@ -25,13 +25,17 @@ class MouseMovement:
             SyntaxError: The button param does not contain "left","right og "middle"
         """
 
-        logging.debug("Trying to click on:" + coords + "with " + button + "button")
 
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
 
+        logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
+
+
         x = coords[0]
         y = coords[1]
+
+
 
         if "right" in button.lower():
             _button_state = win32con.MK_RBUTTON
@@ -72,6 +76,9 @@ class MouseMovement:
             SyntaxError: The button param does not contain "left" or "right"
         """
 
+        if all(isinstance(elem, float) for elem in [x,y]):
+            x,y = self.to_pixel([x,y])
+
         return self.click([self._last_x + x, self._last_y + y], button)
 
     def to_coord(self, pos_x, pos_y):
@@ -87,6 +94,8 @@ class MouseMovement:
             touple: a pair of integers representing the actual coordinates in
                 the form of pixels
         """
+
+
 
         self.window_size = self._pycwnd.GetWindowPlacement()[4]
         size_vert = int(self.window_size[3] - self.window_size[1])
