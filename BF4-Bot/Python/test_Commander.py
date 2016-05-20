@@ -1,15 +1,21 @@
 import unittest
 import win32gui
 import sys
+
+import win32api
+
 from BF_Commander import CommandAndControl
 from ConfigParser import SafeConfigParser
 import logging
 import WindowHandlers as wh
 import PixelSearch as ps
 import MouseMovement as mm
+import math
+import win32con
 from PIL import Image
 from time import sleep
 import numpy as np
+
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -76,8 +82,21 @@ class TestCommander(unittest.TestCase):
         array = np.array(im)
         print array
 
+    def rotl(self,num, bits):
+        bit = num & (1 << (bits - 1))
+        num <<= 1
+        if (bit):
+            num |= 1
+        num &= (2 ** bits - 1)
+
+        return num
+
     def test_basic_commander(self):
         logging.debug("Running a basic test of the commander functions")
+
+        parser = SafeConfigParser()
+        parser.read('config.ini')
+        color = parser.get('PixelScan','redColor').split(',')
 
         win_handler = wh.WinHandler()
         pixel_search = ps.PixelSearch(win_handler)
@@ -89,7 +108,11 @@ class TestCommander(unittest.TestCase):
 
         mouse_handler.click((0.5,0.5),'right')
         sleep(2)
-        mouse_handler.offset_click(-0.1,0.1)
+        mouse_handler.offset_click(-0.1,0.0,'right')
+
+        px = pixel_search.pixel_search(color,)
+
+        raise NotImplementedError('Missing pixel search functionality atm')
 
 
 if __name__ == '__main__':

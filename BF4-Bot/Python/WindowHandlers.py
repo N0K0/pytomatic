@@ -145,6 +145,9 @@ class WinHandler:
     def get_pycwnd(self):
         return self.pycwnd
 
+    def get_hwnd(self):
+        return self.hwnd
+
     def get_title(self):
         return self.title
 

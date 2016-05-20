@@ -30,7 +30,13 @@ class PixelSearch:
 
         return numpy_image
 
-    def pixel_search(self):
+    def pixel_search(self, color, shades = 0, bbox = None):
+        logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
+
+        wnd = self.grab_window()
+        px_data = self.img_to_numpy(wnd)
+        hits = self.find_pixel_in_array(px_data,color,shades)
+
         print "Implement pixel_search"
         raise NotImplementedError
 
@@ -93,16 +99,18 @@ class PixelSearch:
 
         """
 
+        if len(numpy_array.shape) == 3:
+            logging.debug('Got a expanded RGB array')
+            raise NotImplementedError('Expanded Array grabber not implemented')
+        elif len(numpy_array.shape) == 2:
+            logging.debug('Got a compound RGB array')
+            aprox = numpy.vectorize(self.aproximate_color)
+            array = aprox(numpy_array, color, shades)
 
+        else:
+            logging.debug('WTF did i just get?')
+            raise TypeError('Got an malformed array')
 
-
-        aprox = numpy.vectorize(self.aproximate_color)
-
-        array = aprox(numpy_array, color, shades)
-
-        # array = self.aproximate_color(numpy_array,color,shades)
-
-        print array
         return array
 
     @staticmethod
