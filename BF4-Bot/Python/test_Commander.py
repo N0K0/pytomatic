@@ -88,9 +88,8 @@ class TestCommander(unittest.TestCase):
 
         parser = SafeConfigParser()
         parser.read('config.ini')
-        color = parser.get('PixelScan','redColor').split(',')
-        color = map(int, color)
-
+        color = parser.get('PixelScan','blueColor')
+        color = int(color,16)
         win_handler = wh.WinHandler()
         pixel_search = ps.PixelSearch(win_handler)
         mouse_handler = mm.MouseMovement(win_handler)
@@ -100,10 +99,10 @@ class TestCommander(unittest.TestCase):
         win_handler.init_window()
 
         mouse_handler.click((0.5,0.5),'right')
-        sleep(2)
+        sleep(0.5)
         mouse_handler.offset_click(-0.1,0.0,'right')
 
-        px = pixel_search.pixel_search(color)
+        px = pixel_search.pixel_search(color,shades=3,debug='basic_pix.png')
 
         raise NotImplementedError('Missing pixel search functionality atm')
 
