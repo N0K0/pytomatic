@@ -1,9 +1,9 @@
 import logging
 import sys
-import numpy
+import numpy as np
 from ConfigParser import SafeConfigParser
-
 from PIL import ImageGrab
+from colorama.ansi import code_to_chars
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -34,7 +34,7 @@ class PixelSearch:
         logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
 
         wnd = self.grab_window()
-        px_data = self.img_to_numpy(wnd)
+        px_data = self.img_to_numpy(wnd,compound=True)
         hits = self.find_pixel_in_array(px_data,color,shades)
 
         print "Implement pixel_search"
@@ -74,7 +74,7 @@ class PixelSearch:
             having R G B as the third dimension of the matrix
         """
 
-        array = numpy.array(image)
+        array = np.array(image)
         if compound:
             array = self.RGB_to_Hex(array)
 
@@ -99,12 +99,17 @@ class PixelSearch:
 
         """
 
-        if len(numpy_array.shape) == 3:
+        if len(numpy_array.shape) == 3: #TODO: Either use Vectorization or some inline C magic
             logging.debug('Got a expanded RGB array')
-            raise NotImplementedError('Expanded Array grabber not implemented')
+
+            ret = np.apply_along_axis(self.aproximate_color_3d,axis= 2,arr= numpy_array,found=color, shade=shades)
+            return ret
         elif len(numpy_array.shape) == 2:
+            if type(color) is list:
+                color = (color[0] << 16) + (color[1] << 8) + color[2]
+
             logging.debug('Got a compound RGB array')
-            aprox = numpy.vectorize(self.aproximate_color)
+            aprox = np.vectorize(self.aproximate_color_2d)
             array = aprox(numpy_array, color, shades)
 
         else:
@@ -113,19 +118,25 @@ class PixelSearch:
 
         return array
 
-    @staticmethod
-    def aproximate_color(target, found, shade):
+    def aproximate_color_2d(self, target, found, shade):
         red = abs((found >> 16) - (target >> 16)) <= shade
         green = abs((found >> 8) & 0x0000FF - (target >> 8) & 0x0000FF) <= shade
         blue = abs(found & 0x0000FF - target & 0x0000FF) <= shade
 
         return red and green and blue
 
-    # noinspection PyPep8Naming
+    @staticmethod
+    def aproximate_color_3d(target, found, shade):
+
+        if abs(target-found).max < shade:
+            return True
+
+        return False
+
     @staticmethod
     def RGB_to_Hex(numpy_array):
         logging.debug("Converting numpy_array to RGB")
-        array = numpy.asarray(numpy_array, dtype='uint32')
+        array = np.asarray(numpy_array, dtype='uint32')
         return (array[:, :, 0] << 16) + (array[:, :, 1] << 8) + array[:, :, 2]
 
     @staticmethod

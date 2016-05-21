@@ -82,14 +82,6 @@ class TestCommander(unittest.TestCase):
         array = np.array(im)
         print array
 
-    def rotl(self,num, bits):
-        bit = num & (1 << (bits - 1))
-        num <<= 1
-        if (bit):
-            num |= 1
-        num &= (2 ** bits - 1)
-
-        return num
 
     def test_basic_commander(self):
         logging.debug("Running a basic test of the commander functions")
@@ -97,6 +89,7 @@ class TestCommander(unittest.TestCase):
         parser = SafeConfigParser()
         parser.read('config.ini')
         color = parser.get('PixelScan','redColor').split(',')
+        color = map(int, color)
 
         win_handler = wh.WinHandler()
         pixel_search = ps.PixelSearch(win_handler)
@@ -110,7 +103,7 @@ class TestCommander(unittest.TestCase):
         sleep(2)
         mouse_handler.offset_click(-0.1,0.0,'right')
 
-        px = pixel_search.pixel_search(color,)
+        px = pixel_search.pixel_search(color)
 
         raise NotImplementedError('Missing pixel search functionality atm')
 
