@@ -31,11 +31,8 @@ class MouseMovement:
 
         logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
 
-
         x = coords[0]
         y = coords[1]
-
-
 
         if "right" in button.lower():
             _button_state = win32con.MK_RBUTTON
@@ -50,10 +47,12 @@ class MouseMovement:
             _button_down = win32con.WM_MBUTTONDOWN
             _button_up = win32con.WM_MBUTTONUP
         else:
-            raise SyntaxError('Button needs to contain "left", "right" or "middle"')
+            raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
 
         l_param = win32api.MAKELONG(x, y)
         self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
+        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 1, l_param)
+
         self._pycwnd.SendMessage(_button_down, _button_state, l_param)
         time.sleep(0.2)
         self._pycwnd.SendMessage(_button_up, 0, l_param)

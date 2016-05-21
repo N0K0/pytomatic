@@ -42,7 +42,6 @@ class PixelSearch:
         logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
 
         wnd = self.grab_window(file=debug,bbox=bbox)
-        wnd.show()
         px_data = self.img_to_numpy(wnd,compound=False)
 
         if bbox:
@@ -50,7 +49,7 @@ class PixelSearch:
 
         hits = self.find_pixel_in_array(px_data,color,shades)
 
-        hits2 = np.count_nonzero(hits)
+        logging.debug("Found {} valid posistions".format(np.count_nonzero(hits)))
 
         return hits
 
