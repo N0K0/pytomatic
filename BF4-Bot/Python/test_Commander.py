@@ -82,6 +82,21 @@ class TestCommander(unittest.TestCase):
         array = np.array(im)
         print array
 
+    def test_manipulate_ui(self):
+        logging.debug('Starting UI test')
+
+        win_handler = wh.WinHandler()
+
+        hwnd = win_handler.get_hwnd()
+        style_base = win32gui.GetWindowLong(hwnd,win32con.GWL_EXSTYLE)
+
+        win_handler.hide_extra_ui()
+        style_removed = win32gui.GetWindowLong(hwnd,win32con.GWL_EXSTYLE)
+        assert style_base != style_removed
+
+        win_handler.hide_extra_ui(remove=False)
+        style_added = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
+        assert style_removed != style_added
 
     def test_basic_commander(self):
         logging.debug("Running a basic test of the commander functions")
@@ -101,20 +116,6 @@ class TestCommander(unittest.TestCase):
         mouse_handler.click((0.5,0.5),'right')
         sleep(0.5)
         mouse_handler.offset_click(-0.1,0.0,'right')
-
-        px = pixel_search.pixel_search(color,shades=5)
-
-        places = np.nonzero(px)
-
-        print places
-
-        for hit in range(len(places[0])):
-            print (places[0][hit],places[1][hit])
-            mouse_handler.click((places[1][hit],places[0][hit]))
-            sleep(1)
-
-        raise NotImplementedError('Missing pixel search functionality atm')
-
 
 if __name__ == '__main__':
     unittest.main()

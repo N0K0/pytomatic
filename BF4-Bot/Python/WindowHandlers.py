@@ -55,9 +55,10 @@ class WinHandler:
         self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
         return self.pycwnd
 
-    def init_window(self, hwnd=None, pos=None):
+    def init_window(self, hwnd=None, pos=None, borderless=False):
         """
-        At the moment only sets the window in the foreground.
+        At the moment only sets the window in the foreground and moves it to a posistion set in the config.
+        TODO: Make it also remove the windowboarders
 
         Args:
             hwnd (int): the window handle to "initialize". If not supplied
@@ -80,9 +81,32 @@ class WinHandler:
             pos = config.get('general', 'winPos').split(',')
             pos = map(int, pos)
 
-        win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL | win32con.SW_RESTORE)
+        if borderless:
+            self.hide_extra_ui()
+
         win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
         return win32gui.SetForegroundWindow(hwnd)
+
+    def hide_extra_ui(self,hwnd = None, remove = True):
+        logging.debug('Trying to manipulate UI')
+
+        if hwnd is None:
+            hwnd = self.get_hwnd()
+
+        style = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
+
+        if remove:
+            logging.debug('Removing UI')
+            style = style |  win32con.WS_POPUP
+            style = style & ~win32con.WS_OVERLAPPEDWINDOW
+        else:
+            logging.debug('Adding UI')
+            style = style & ~win32con.WS_POPUP
+            style = style |  win32con.WS_OVERLAPPEDWINDOW
+
+        win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
+        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
+        win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
 
     def create_boundingbox(self, hwnd=-1):
 
