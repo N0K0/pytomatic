@@ -17,10 +17,6 @@ from time import sleep
 import numpy as np
 
 
-FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
-
-
 class TestCommander(unittest.TestCase):
     def setUp(self):
         logging.debug("Parsing config")
@@ -85,7 +81,7 @@ class TestCommander(unittest.TestCase):
     def test_manipulate_ui(self):
         logging.debug('Starting UI test')
 
-        win_handler = wh.WinHandler()
+        win_handler = wh.WinHandler('Kalkulator')
 
         hwnd = win_handler.get_hwnd()
         style_base = win32gui.GetWindowLong(hwnd,win32con.GWL_EXSTYLE)
@@ -111,11 +107,28 @@ class TestCommander(unittest.TestCase):
 
         bbox = win_handler.get_bbox()
         bbox_size = win_handler.get_bbox_size()
-        win_handler.init_window()
+        win_handler.init_window(borderless=True)
+        sleep(0.1)
 
-        mouse_handler.click((0.5,0.5),'right')
-        sleep(0.5)
-        mouse_handler.offset_click(-0.1,0.0,'right')
+        px = pixel_search.pixel_search(color, shades=2,debug='check.png')
+
+        places = np.nonzero(px)
+
+        for hit in range(len(places[0])):
+            mouse_handler.click((places[1][hit], places[0][hit]))
+            sleep(1)
+
+    def test_basic_commands(self):
+
+        win_handler = wh.WinHandler()
+        pixel_handler = ps.PixelSearch(win_handler)
+        mouse_handler = mm.MouseMovement(win_handler)
+
+        com = CommandAndControl(win_handler,pixel_handler,mouse_handler)
+
+        com.use_UAV((0.5,0.5))
+        sleep(2)
+        com.use_EMP((0.4,0.4))
 
 if __name__ == '__main__':
     unittest.main()

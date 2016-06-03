@@ -51,10 +51,11 @@ class MouseMovement:
 
         l_param = win32api.MAKELONG(x, y)
         self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
-        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 1, l_param)
+        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
 
+        time.sleep(0.1)
         self._pycwnd.SendMessage(_button_down, _button_state, l_param)
-        time.sleep(0.2)
+        time.sleep(0.1)
         self._pycwnd.SendMessage(_button_up, 0, l_param)
 
         self._last_x = x

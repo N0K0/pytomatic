@@ -1,12 +1,20 @@
+from time import sleep
+
 import numpy
 
-import MouseMovement
-import PixelSearch
-import WindowHandlers
+import MouseMovement    as mm
+import PixelSearch      as ps
+import WindowHandlers   as wh
 
 # from ConfigParser import SafeConfigParser
 
 numpy.set_printoptions(formatter={'int': hex})
+
+import sys
+import logging
+FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
+
 
 
 class CommandAndControl:
@@ -23,9 +31,15 @@ class CommandAndControl:
         raise NotImplementedError
 
     # noinspection PyPep8Naming
-    def use_UAV(self):
-        print "Implement use_UAV"
-        raise NotImplementedError
+    def use_UAV(self, coords):
+        self.mouse_handler.click(coords,button='right')
+        sleep(1)
+        self.mouse_handler.offset_click(0.0,-0.05)
+
+    def use_EMP(self,coords):
+        self.mouse_handler.click(coords, button='right')
+        sleep(1)
+        self.mouse_handler.offset_click(0.0, -0.1)
 
     def pause(self):
         print "Implement pause"
@@ -35,13 +49,11 @@ class CommandAndControl:
         print "Implement debug_out"
         raise NotImplementedError
 
-    def get_win_handler(self):
-        return self._win_handler
+    def __init__(self, win_h,pix_h,mo_h):
 
-    def __init__(self):
-        self._win_handler = WindowHandlers.WinHandler()
-        self._pix_handler = PixelSearch.PixelSearch(self._win_handler)
-        self._mouse_handler = MouseMovement.MouseMovement(self._win_handler)
+        self.win_handler = win_h
+        self.pix_handler = pix_h
+        self.mouse_handler = mo_h
 
 
 if __name__ == '__main__':
