@@ -5,8 +5,10 @@ import numpy as np
 from ConfigParser import SafeConfigParser
 from PIL import ImageGrab
 from PIL import Image
+
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
+
 
 def extract_color_band(value, band):
     if band == 1 or band == 'R':
@@ -18,6 +20,7 @@ def extract_color_band(value, band):
     else:
         raise ValueError('Invalid Bandinput')
 
+
 class PixelSearch:
     def __init__(self, win_handler=None):
         config = SafeConfigParser()
@@ -26,34 +29,22 @@ class PixelSearch:
         self.last_image = None
         self.wh = win_handler
 
-        self.score_box = config.get('PixelScan', 'ScoreBox').split(',')
-        self.score_box = map(float, self.score_box)
-
-
-    def wipe_scorebox(self, score_box=None, numpy_image=None):
-        if score_box is None:
-            score_box = self.score_box
-
-        score_box = self.wh.create_boundingbox_from_coords(score_box)
-        numpy_image[score_box[0]:score_box[2], score_box[1]:score_box[3]] = 0x0
-        return numpy_image
-
-    def pixel_search(self, color, shades = 0, bbox = None, debug = None):
+    def pixel_search(self, color, shades=0, bbox=None, debug=None):
         logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
 
-        wnd = self.grab_window(file=debug,bbox=bbox)
-        px_data = self.img_to_numpy(wnd,compound=False)
+        wnd = self.grab_window(file=debug, bbox=bbox)
+        px_data = self.img_to_numpy(wnd, compound=False)
 
         if bbox:
-            px_data = px_data[bbox[0]:bbox[2],bbox[1]:bbox[3]]
+            px_data = px_data[bbox[0]:bbox[2], bbox[1]:bbox[3]]
 
-        hits = self.find_pixel_in_array(px_data,color,shades)
+        hits = self.find_pixel_in_array(px_data, color, shades)
 
         logging.debug("Found {} valid posistions".format(np.count_nonzero(hits)))
 
         return hits
 
-    def grab_window(self,file = None,bbox=None):
+    def grab_window(self, file=None, bbox=None):
         """
         Grabs the window and returns a image based on the on a hwnd and the
             bounding box that follows.
@@ -73,7 +64,7 @@ class PixelSearch:
         self.last_image = temp_img
         return temp_img
 
-    def img_to_numpy(self, image,compound = False):
+    def img_to_numpy(self, image, compound=False):
         """
         Converts an PIL.Image object to a numpy array and then collapses the
             array into an rgb array
@@ -85,10 +76,12 @@ class PixelSearch:
             A 2d/3d array with x*y elements. Each element represent a pixel with
             an RGB value. For example 0xab01ee  -> RGB (171,1,238) or simply by
             having R G B as the third dimension of the matrix
+            :param compound:
         """
 
-        array = np.asarray(image,dtype="uint32")
+        array = np.asarray(image, dtype="uint32")
 
+        # DEPRECATED
         if compound:
             newarray = self.RGB_to_Hex(array)
             return newarray
@@ -114,11 +107,11 @@ class PixelSearch:
 
         """
 
-        if len(numpy_array.shape) == 3: #TODO: Either use Vectorization or some inline C magic
+        if len(numpy_array.shape) == 3:  # TODO: Either use Vectorization or some inline C magic
             logging.debug('Got a expanded RGB array')
 
-            ret = self.aproximate_color_3d(numpy_array,color,shades)
-            ret = np.all(ret,axis=2)
+            ret = self.aproximate_color_3d(numpy_array, color, shades)
+            ret = np.all(ret, axis=2)
             return ret
 
         elif len(numpy_array.shape) == 2:
@@ -145,20 +138,20 @@ class PixelSearch:
         return 0
 
     @staticmethod
-    def aproximate_color_3d(array,color,shade):
+    def aproximate_color_3d(array, color, shade):
         r = extract_color_band(color, 'R')
         g = extract_color_band(color, 'G')
         b = extract_color_band(color, 'B')
 
-        numpy_array = abs(array[:,:,:] - (r,g,b)) <= shade
+        numpy_array = abs(array[:, :, :] - (r, g, b)) <= shade
         return numpy_array
 
     @staticmethod
+    # DEPRECATED
     def RGB_to_Hex(numpy_array):
         logging.debug("Converting numpy_array to RGB")
         array = np.asarray(numpy_array, dtype='uint32')
         return (array[:, :, 0] << 16) + (array[:, :, 1] << 8) + array[:, :, 2]
-
 
     @staticmethod
     def get_red_pos(max_try=10):

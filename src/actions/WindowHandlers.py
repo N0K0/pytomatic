@@ -87,7 +87,7 @@ class WinHandler:
         win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
         return win32gui.SetForegroundWindow(hwnd)
 
-    def hide_extra_ui(self,hwnd = None, remove = True):
+    def hide_extra_ui(self, hwnd=None, remove=True):
         logging.debug('Trying to manipulate UI')
 
         if hwnd is None:
@@ -97,12 +97,12 @@ class WinHandler:
 
         if remove:
             logging.debug('Removing UI')
-            style = style |  win32con.WS_POPUP
+            style = style | win32con.WS_POPUP
             style = style & ~win32con.WS_OVERLAPPEDWINDOW
         else:
             logging.debug('Adding UI')
             style = style & ~win32con.WS_POPUP
-            style = style |  win32con.WS_OVERLAPPEDWINDOW
+            style = style | win32con.WS_OVERLAPPEDWINDOW
 
         win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
@@ -136,7 +136,7 @@ class WinHandler:
 
         bounding_box = self.create_boundingbox(hwnd)
         bounding_box = coords[0] * bounding_box[2], coords[1] * bounding_box[3], coords[2] * bounding_box[2], \
-            coords[3] * bounding_box[3]
+                       coords[3] * bounding_box[3]
         bounding_box = map(int, bounding_box)
         return bounding_box
 
@@ -145,11 +145,11 @@ class WinHandler:
             return self.create_boundingbox()
         return self.bbox
 
-    def get_bbox_size(self, bbox = None):
+    def get_bbox_size(self, bbox=None):
         if bbox is None:
             bbox = self.get_bbox()
-        bbox_size = bbox[2]-bbox[0],bbox[3]-bbox[1]
-        logging.debug('Found following size: %d, %d' % (bbox[2]-bbox[0], bbox[3]-bbox[1]))
+        bbox_size = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        logging.debug('Found following size: %d, %d' % (bbox[2] - bbox[0], bbox[3] - bbox[1]))
         return bbox_size
 
     def __init__(self, title=None):

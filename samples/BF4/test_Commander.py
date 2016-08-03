@@ -1,20 +1,17 @@
+import logging
 import unittest
 import win32gui
-import sys
-
-import win32api
-
-from BF_Commander import CommandAndControl
 from ConfigParser import SafeConfigParser
-import logging
-import WindowHandlers as wh
-import PixelSearch as ps
-import MouseMovement as mm
-import math
+from time import sleep
+
+import numpy as np
 import win32con
 from PIL import Image
-from time import sleep
-import numpy as np
+
+from BF_Commander import CommandAndControl
+from src.actions import PixelSearch as ps
+from src.actions import WindowHandlers as wh
+from src.actions import MouseMovement as mm
 
 
 class TestCommander(unittest.TestCase):
@@ -25,7 +22,7 @@ class TestCommander(unittest.TestCase):
         title = parser.get('general', 'winTitle')
         logging.debug("Looking for BF4")
         hwnd = win32gui.FindWindow(None, title)
-        #assert (hwnd != 0)
+        # assert (hwnd != 0)
         logging.debug("Found BF4")
 
     def test_init_window(self):
@@ -50,29 +47,28 @@ class TestCommander(unittest.TestCase):
     def test_window_grab(self):
         logging.debug("Running pixel search test")
 
-        win_handler =  wh.WinHandler('Kalkulator')
+        win_handler = wh.WinHandler('Kalkulator')
         pixel_search = ps.PixelSearch(win_handler)
-        win_handler.init_window(pos=[0,0,320,510])
+        win_handler.init_window(pos=[0, 0, 320, 510])
         sleep(1)
         pixel_search.grab_window('pixel_search.png')
 
-
         file = pixel_search.grab_window('pixel_search.png')
         im = Image.open('pixel_search_sample.png')
-        im = Image.Image.crop(im,(20,20,200,200))
+        im = Image.Image.crop(im, (20, 20, 200, 200))
         im.load()
-        im2 = Image.Image.crop(file,(20,20,200,200))
+        im2 = Image.Image.crop(file, (20, 20, 200, 200))
         im2.load()
 
         mat1 = im.tobytes()
         mat2 = im2.tobytes()
-        assert(mat1 == mat2)
+        assert (mat1 == mat2)
 
     def test_pixel_search(self):
         logging.debug("Running pixelsearch test")
         win_handler = wh.WinHandler('Kalkulator')
         pixel_search = ps.PixelSearch(win_handler)
-        win_handler.init_window(pos=[0, 0, 320, 510])
+        win_handler.init_window(pos=(0, 0, 320, 510))
         sleep(1)
         im = Image.open('pixel_search_sample.png')
         array = np.array(im)
@@ -84,10 +80,10 @@ class TestCommander(unittest.TestCase):
         win_handler = wh.WinHandler('Kalkulator')
 
         hwnd = win_handler.get_hwnd()
-        style_base = win32gui.GetWindowLong(hwnd,win32con.GWL_EXSTYLE)
+        style_base = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
 
         win_handler.hide_extra_ui()
-        style_removed = win32gui.GetWindowLong(hwnd,win32con.GWL_EXSTYLE)
+        style_removed = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
         assert style_base != style_removed
 
         win_handler.hide_extra_ui(remove=False)
@@ -99,8 +95,8 @@ class TestCommander(unittest.TestCase):
 
         parser = SafeConfigParser()
         parser.read('config.ini')
-        color = parser.get('PixelScan','redColor')
-        color = int(color,16)
+        color = parser.get('PixelScan', 'redColor')
+        color = int(color, 16)
         win_handler = wh.WinHandler()
         pixel_search = ps.PixelSearch(win_handler)
         mouse_handler = mm.MouseMovement(win_handler)
@@ -110,7 +106,7 @@ class TestCommander(unittest.TestCase):
         win_handler.init_window(borderless=True)
         sleep(0.1)
 
-        px = pixel_search.pixel_search(color, shades=2,debug='check.png')
+        px = pixel_search.pixel_search(color, shades=2, debug='check.png')
 
         places = np.nonzero(px)
 
@@ -119,16 +115,16 @@ class TestCommander(unittest.TestCase):
             sleep(1)
 
     def test_basic_commands(self):
-
         win_handler = wh.WinHandler()
         pixel_handler = ps.PixelSearch(win_handler)
         mouse_handler = mm.MouseMovement(win_handler)
 
-        com = CommandAndControl(win_handler,pixel_handler,mouse_handler)
+        com = CommandAndControl(win_handler, pixel_handler, mouse_handler)
 
-        com.use_UAV((0.5,0.5))
+        com.use_UAV((0.5, 0.5))
         sleep(2)
-        com.use_EMP((0.4,0.4))
+        com.use_EMP((0.4, 0.4))
+
 
 if __name__ == '__main__':
     unittest.main()

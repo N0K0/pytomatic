@@ -25,7 +25,6 @@ class MouseMovement:
             SyntaxError: The button param does not contain "left","right og "middle"
         """
 
-
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
 
@@ -76,8 +75,8 @@ class MouseMovement:
             SyntaxError: The button param does not contain "left" or "right"
         """
 
-        if all(isinstance(elem, float) for elem in [x,y]):
-            x,y = self.to_pixel([x,y])
+        if all(isinstance(elem, float) for elem in [x, y]):
+            x, y = self.to_pixel([x, y])
 
         return self.click([self._last_x + x, self._last_y + y], button)
 
@@ -94,8 +93,6 @@ class MouseMovement:
             touple: a pair of integers representing the actual coordinates in
                 the form of pixels
         """
-
-
 
         self.window_size = self._pycwnd.GetWindowPlacement()[4]
         size_vert = int(self.window_size[3] - self.window_size[1])
