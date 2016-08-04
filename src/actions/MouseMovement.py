@@ -9,12 +9,12 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 
 class MouseMovement:
-    def click(self, coords, button="left"):
+    def click(self, coords, button="left",hold=False):
         """
         Args:
             coords (touple): coords takes two arguments, either both float
                 or int. If float is supplied, it will try to treat them as
-                percentages.
+                percentages. X, Y
             button (string): either "left","right" or "middle". Decides what button that
                 will be sent to the running program.
 
@@ -55,7 +55,9 @@ class MouseMovement:
         time.sleep(0.1)
         self._pycwnd.SendMessage(_button_down, _button_state, l_param)
         time.sleep(0.1)
-        self._pycwnd.SendMessage(_button_up, 0, l_param)
+
+        if hold: #Do not release the button if hold is true
+            self._pycwnd.SendMessage(_button_up, 0, l_param)
 
         self._last_x = x
         self._last_y = y
@@ -79,6 +81,50 @@ class MouseMovement:
             x, y = self.to_pixel([x, y])
 
         return self.click([self._last_x + x, self._last_y + y], button)
+
+    def move(self,coords):
+        l_param = win32api.MAKELONG(coords[0], coords[1])
+        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
+        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
+
+    def hold_and_drag(self,start_x,start_y,end_x,end_y,steps,button="left"):
+        logging.warning('Hold and drag has not been tested')
+        step_x = (end_x - start_x) / steps
+        step_y = (end_y - start_y) / steps
+
+        if "right" in button.lower():
+            _button_state = win32con.MK_RBUTTON
+            _button_down = win32con.WM_RBUTTONDOWN
+            _button_up = win32con.WM_RBUTTONUP
+        elif "left" in button.lower():
+            _button_state = win32con.MK_LBUTTON
+            _button_down = win32con.WM_LBUTTONDOWN
+            _button_up = win32con.WM_LBUTTONUP
+        elif "middle" in button.lower():
+            _button_state = win32con.MK_MBUTTON
+            _button_down = win32con.WM_MBUTTONDOWN
+            _button_up = win32con.WM_MBUTTONUP
+        else:
+            raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
+
+        self.move((start_x,start_y))
+        l_param = win32api.MAKELONG(start_x, start_y)
+
+        time.sleep(0.1)
+        self._pycwnd.SendMessage(_button_down, _button_state, l_param)
+        time.sleep(0.1)
+
+        x, y = start_x, start_y
+        for step in range(0,steps):
+            self.move((x,y))
+            x += step_x,
+            y += step_y
+
+        l_param = win32api.MAKELONG(x, y)
+        self._pycwnd.SendMessage(_button_up, 0, l_param)
+        self._last_x = x
+        self._last_y = y
+
 
     def to_coord(self, pos_x, pos_y):
         print "Implement to_coord"

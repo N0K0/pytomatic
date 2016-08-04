@@ -17,3 +17,6 @@ def move_window_around():
             win_handler.move((x,y))
             time.sleep(0.3)
 
+def click_and_drag():
+    os.system('mspaint.exe')
+    win_handler = WindowHandlers.WinHandler('Paint')
