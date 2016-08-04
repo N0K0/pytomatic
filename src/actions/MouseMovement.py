@@ -7,6 +7,7 @@ import sys
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
+#TODO: Test win32api's mouseevent api
 
 class MouseMovement:
     def click(self, coords, button="left",hold=False):
@@ -83,14 +84,26 @@ class MouseMovement:
         return self.click([self._last_x + x, self._last_y + y], button)
 
     def move(self,coords):
+        if all(isinstance(elem, float) for elem in coords):
+            coords = self.to_pixel(coords)
+
         l_param = win32api.MAKELONG(coords[0], coords[1])
         self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
         self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
 
-    def hold_and_drag(self,start_x,start_y,end_x,end_y,steps,button="left"):
+    def hold_and_drag(self,start,end,steps,button="left"):
         logging.warning('Hold and drag has not been tested')
-        step_x = (end_x - start_x) / steps
-        step_y = (end_y - start_y) / steps
+
+
+        if all(isinstance(elem, float) for elem in start):
+            start = self.to_pixel(start)
+
+        if all(isinstance(elem, float) for elem in end):
+            end = self.to_pixel(end)
+
+        step_x = (end[0] - start[0]) / steps
+        step_y = (end[1] - start[1]) / steps
+
 
         if "right" in button.lower():
             _button_state = win32con.MK_RBUTTON
@@ -107,18 +120,20 @@ class MouseMovement:
         else:
             raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
 
-        self.move((start_x,start_y))
-        l_param = win32api.MAKELONG(start_x, start_y)
+        self.move(start)
+        l_param = win32api.MAKELONG(start[0], start[1])
 
         time.sleep(0.1)
         self._pycwnd.SendMessage(_button_down, _button_state, l_param)
         time.sleep(0.1)
 
-        x, y = start_x, start_y
+        x, y = start
         for step in range(0,steps):
             self.move((x,y))
-            x += step_x,
+            x += step_x
             y += step_y
+            self.move((x,y))
+            time.sleep(0.01)
 
         l_param = win32api.MAKELONG(x, y)
         self._pycwnd.SendMessage(_button_up, 0, l_param)

@@ -55,7 +55,7 @@ class WinHandler:
         self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
         return self.pycwnd
 
-    def init_window(self, hwnd=None, pos=None, borderless=False):
+    def init_window(self, hwnd=None, pos=None, borderless=False, config = None):
         """
         At the moment only sets the window in the foreground and moves it to a posistion set in the config.
 
@@ -77,17 +77,20 @@ class WinHandler:
         logging.debug("Init window (%s)" % str(hwnd))
 
         if pos is None:
-            config = SafeConfigParser()
-            config.read('config.ini')
-            pos = config.get('general', 'winPos').split(',')
-            pos = map(int, pos)
+            pos = None
+
+            if config is not None:
+                config = SafeConfigParser()
+                config.read('config.ini')
+                pos = config.get('general', 'winPos').split(',')
+                pos = map(int, pos)
 
         if borderless:
             self.hide_extra_ui()
 
-        self.move(pos, hwnd)
+        if pos is not None:
+            self.move(pos, hwnd)
         return win32gui.SetForegroundWindow(hwnd)
-
     def move(self, pos, hwnd=None):
         """
         :param pos: A tuple describing the (X,Y,Width,Height) of the window OR

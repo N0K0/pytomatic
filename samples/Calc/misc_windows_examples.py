@@ -17,6 +17,15 @@ def move_window_around():
             win_handler.move((x,y))
             time.sleep(0.3)
 
+
 def click_and_drag():
-    os.system('mspaint.exe')
-    win_handler = WindowHandlers.WinHandler('Paint')
+    #os.system('calc.exe') #Lets run the calculator app
+    win_handler = WindowHandlers.WinHandler('Kalkulator')
+    win_handler.init_window()
+    mouse_handler = MouseMovement.MouseMovement(win_handler)
+   # mouse_handler.hold_and_drag((0.1,0.5),(0.6,0.5),2000)
+    time.sleep(1)
+    mouse_handler.click((0.5,0.5))
+
+click_and_drag()
+
