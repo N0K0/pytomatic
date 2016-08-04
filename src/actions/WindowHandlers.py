@@ -58,12 +58,13 @@ class WinHandler:
     def init_window(self, hwnd=None, pos=None, borderless=False):
         """
         At the moment only sets the window in the foreground and moves it to a posistion set in the config.
-        TODO: Make it also remove the windowboarders
 
         Args:
             hwnd (int): the window handle to "initialize". If not supplied
                 the hwnd from the last get_hwnd_by_title will be used
             pos (tuple): a tuple describing the X,Y,Height and Width of the window
+            borderless (Bool): Removes extra styling like borders if true. Can be reapplied with:
+                hide_extra_ui(hwnd,remove=False)
         Returns:
             If the window was brought to the foreground, the return value is
                 nonzero. If the window was not brought to the foreground, the
@@ -84,10 +85,33 @@ class WinHandler:
         if borderless:
             self.hide_extra_ui()
 
-        win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
+        self.move(pos, hwnd)
         return win32gui.SetForegroundWindow(hwnd)
 
+    def move(self, pos, hwnd=None):
+        """
+        :param pos: A tuple describing the (X,Y,Width,Height) of the window OR
+            A tuple describing the (X,Y) coordinates of the top right windows position
+        :param hwnd: Move supplied window. If not supplied, then the default window is moved
+        :return: The window handle
+        """
+
+        if hwnd is None:
+            hwnd = self.get_hwnd()
+
+        if len(pos) == 4:
+            win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
+        if len(pos) == 2:
+            win_size = self.get_bbox_size()
+            win32gui.MoveWindow(hwnd,pos[0],pos[1],win_size[0],win_size[1], 1)
+
     def hide_extra_ui(self, hwnd=None, remove=True):
+        """
+        :param hwnd: Hwnd to remove all styling from. If not supplied, then the default hwnd is used
+        :param remove: If true: Removes all styling. If false: Adds back the removed styles
+        :return: NoneType
+        """
+
         logging.debug('Trying to manipulate UI')
 
         if hwnd is None:
@@ -108,8 +132,7 @@ class WinHandler:
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
         win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
 
-    def create_boundingbox(self, hwnd=-1):
-
+    def create_boundingbox(self, hwnd=None,windows_style=False):
         """
         Creates a bounding box of the window.
 
@@ -118,16 +141,22 @@ class WinHandler:
                 the hwnd from the last get_hwnd_by_title will be used
 
         Returns:
-            Creates a touple with four elements. The upper right coordinates
+            Creates a tuple with four elements. The upper right coordinates
                 and the lower left coordinates.
         """
 
-        if hwnd == -1:
+        if hwnd == None:
             hwnd = self.hwnd
         logging.debug('Trying to find the box for %d' % hwnd)
+
         self.bbox = win32gui.GetWindowRect(hwnd)
         logging.debug('Found %s' % ','.join(map(str, self.bbox)))
-        return self.bbox
+
+        if windows_style:
+            pos_size = self.get_bbox_size(self.get_bbox())
+            return ()
+        else:
+            return self.bbox
 
     def create_boundingbox_from_coords(self, coords, hwnd=None):
 
@@ -140,24 +169,35 @@ class WinHandler:
         bounding_box = map(int, bounding_box)
         return bounding_box
 
-    def get_bbox(self):
-        if self.bbox is None:
-            return self.create_boundingbox()
-        return self.bbox
+    def get_bbox(self,hwnd=None):
+        '''
+        :return: A tuple with two elements. Containing the width and height of the default window
+        '''
+        if hwnd is None:
+            hwnd = self.get_hwnd()
 
-    def get_bbox_size(self, bbox=None):
-        if bbox is None:
-            bbox = self.get_bbox()
+        return self.create_boundingbox(hwnd)
+
+    def get_bbox_size(self, hwnd=None):
+        """
+        :param hwnd: If supplied: Calculates the size of boundingbox for the given handle.
+            If not:  the boundingbox for the default window
+        :return: a tuple, with the (width, height) data
+        """
+
+        if hwnd is None:
+            hwnd = self.get_hwnd()
+
+        bbox = self.get_bbox()
         bbox_size = bbox[2] - bbox[0], bbox[3] - bbox[1]
         logging.debug('Found following size: %d, %d' % (bbox[2] - bbox[0], bbox[3] - bbox[1]))
         return bbox_size
 
-    def __init__(self, title=None):
+    def __init__(self, title,config=None):
 
-        parser = SafeConfigParser()
-        parser.read('config.ini')
-
-        if title is None:
+        if config is not None:
+            parser = SafeConfigParser()
+            parser.read(config)
             self.title = parser.get('general', 'winTitle')
         else:
             self.title = title
