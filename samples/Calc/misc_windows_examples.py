@@ -3,6 +3,10 @@ import sys
 
 import time
 
+import win32api
+
+import win32con
+
 from src.actions import WindowHandlers
 from src.actions import PixelSearch
 from src.actions import MouseMovement
@@ -19,13 +23,13 @@ def move_window_around():
 
 
 def click_and_drag():
-    #os.system('calc.exe') #Lets run the calculator app
-    win_handler = WindowHandlers.WinHandler('Kalkulator')
+    win_handler = WindowHandlers.WinHandler('Nox')
     win_handler.init_window()
     mouse_handler = MouseMovement.MouseMovement(win_handler)
-   # mouse_handler.hold_and_drag((0.1,0.5),(0.6,0.5),2000)
+    mouse_handler.hold_and_drag((150,150),(1000,1000),100)
     time.sleep(1)
-    mouse_handler.click((0.5,0.5))
+
+
 
 click_and_drag()
 

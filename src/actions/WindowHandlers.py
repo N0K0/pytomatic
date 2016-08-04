@@ -1,9 +1,12 @@
 from ConfigParser import SafeConfigParser
 import win32gui
 import win32ui
+from ctypes import windll
+
 import win32con
 import logging
 import sys
+
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -44,9 +47,9 @@ class WinHandler:
             pycwnd: a handle to the window we are looking for
 
         """
-        logging.debug("Make pyc hwnd with handle %d" % hwnd)
+        logging.debug("Make pyc hwnd with handle 0x%x" % hwnd)
         if hwnd == -1:
-            logging.debug("Hwnd not supplied, using %d instead" % self.hwnd)
+            logging.debug("Hwnd not supplied, using %x instead" % self.hwnd)
             hwnd = self.hwnd
 
         if hwnd == 0:
@@ -74,7 +77,7 @@ class WinHandler:
         if hwnd is None:
             hwnd = self.hwnd
 
-        logging.debug("Init window (%s)" % str(hwnd))
+        logging.debug("Init window (0x%x)" % hwnd)
 
         if pos is None:
             pos = None
@@ -101,6 +104,7 @@ class WinHandler:
 
         if hwnd is None:
             hwnd = self.get_hwnd()
+
 
         if len(pos) == 4:
             win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
@@ -150,7 +154,7 @@ class WinHandler:
 
         if hwnd == None:
             hwnd = self.hwnd
-        logging.debug('Trying to find the box for %d' % hwnd)
+        logging.debug('Trying to find the box for 0x%x' % hwnd)
 
         self.bbox = win32gui.GetWindowRect(hwnd)
         logging.debug('Found %s' % ','.join(map(str, self.bbox)))

@@ -1,5 +1,7 @@
 import time
 import win32api
+from ctypes import windll
+
 import win32con
 import logging
 import sys
@@ -29,6 +31,8 @@ class MouseMovement:
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
 
+        hwnd = self._win_handler.get_hwnd()
+
         logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
 
         x = coords[0]
@@ -50,15 +54,15 @@ class MouseMovement:
             raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
 
         l_param = win32api.MAKELONG(x, y)
-        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
-        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
+
+        win32api.SendMessage(hwnd, win32con.WM_MOUSEMOVE,0,l_param)
 
         time.sleep(0.1)
-        self._pycwnd.SendMessage(_button_down, _button_state, l_param)
+        win32api.SendMessage(hwnd,_button_down, _button_state, l_param)
         time.sleep(0.1)
 
         if hold: #Do not release the button if hold is true
-            self._pycwnd.SendMessage(_button_up, 0, l_param)
+            win32api.SendMessage(hwnd, _button_up, 0, l_param)
 
         self._last_x = x
         self._last_y = y
@@ -88,12 +92,11 @@ class MouseMovement:
             coords = self.to_pixel(coords)
 
         l_param = win32api.MAKELONG(coords[0], coords[1])
-        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
-        self._pycwnd.SendMessage(win32con.WM_MOUSEMOVE, 0, l_param)
+        win32api.PostMessage(self._win_handler.get_hwnd(),win32con.WM_MOUSEMOVE,win32con.MK_LBUTTON,l_param)
 
     def hold_and_drag(self,start,end,steps,button="left"):
         logging.warning('Hold and drag has not been tested')
-
+        hwnd = self._win_handler.get_hwnd()
 
         if all(isinstance(elem, float) for elem in start):
             start = self.to_pixel(start)
@@ -101,8 +104,8 @@ class MouseMovement:
         if all(isinstance(elem, float) for elem in end):
             end = self.to_pixel(end)
 
-        step_x = (end[0] - start[0]) / steps
-        step_y = (end[1] - start[1]) / steps
+        step_x = (float(end[0] - start[0])) / steps
+        step_y = (float(end[1] - start[1])) / steps
 
 
         if "right" in button.lower():
@@ -124,19 +127,19 @@ class MouseMovement:
         l_param = win32api.MAKELONG(start[0], start[1])
 
         time.sleep(0.1)
-        self._pycwnd.SendMessage(_button_down, _button_state, l_param)
+        win32api.SendMessage(hwnd,_button_down,_button_state,l_param)
         time.sleep(0.1)
 
         x, y = start
         for step in range(0,steps):
-            self.move((x,y))
             x += step_x
             y += step_y
-            self.move((x,y))
+            self.move((int(x),int(y)))
             time.sleep(0.01)
 
-        l_param = win32api.MAKELONG(x, y)
-        self._pycwnd.SendMessage(_button_up, 0, l_param)
+        l_param = win32api.MAKELONG(int(x), int(y))
+        #self._pycwnd.SendMessage(_button_up, 0, l_param)
+        win32api.SendMessage(hwnd,_button_up,0,l_param)
         self._last_x = x
         self._last_y = y
 
