@@ -8,7 +8,7 @@ FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 #TODO: Test win32api's mouseevent api
-
+#https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
 class MouseMovement:
     def click(self, coords, button="left",hold=False):
         """
