@@ -13,7 +13,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 
 class WinHandler:
-    def get_hwnd_by_title(self, title_text=""):
+    def get_hwnd_by_title(self, class_text = None ,title_text= None):
         """ Returns a windows window_handler
 
         Args:
@@ -26,8 +26,8 @@ class WinHandler:
             win32.error: If the windowtitle is invalid
 
         """
-        logging.debug("Where supplied title: " + title_text)
-        self.hwnd = win32gui.FindWindow(None, title_text)
+        logging.debug("Where supplied title: " + str(title_text))
+        self.hwnd = win32gui.FindWindow(class_text, title_text)
 
         if self.hwnd == 0:
             raise ValueError('Unable to find a window with that title')
@@ -200,7 +200,7 @@ class WinHandler:
         logging.debug('Found following size: %d, %d' % (bbox[2] - bbox[0], bbox[3] - bbox[1]))
         return bbox_size
 
-    def __init__(self, title,config=None):
+    def __init__(self, title = None,class_name = None,config=None):
 
         if config is not None:
             parser = SafeConfigParser()
@@ -208,8 +208,9 @@ class WinHandler:
             self.title = parser.get('general', 'winTitle')
         else:
             self.title = title
+            self.class_name = class_name
 
-        self.hwnd = self.get_hwnd_by_title(self.title)
+        self.hwnd = self.get_hwnd_by_title(self.class_name,self.title)
         self.pycwnd = self.make_pyc_wnd(self.hwnd)
         self.bbox = None
 

@@ -6,6 +6,7 @@ import time
 import win32api
 
 import win32con
+import win32ui
 
 from src.actions import WindowHandlers
 from src.actions import PixelSearch
@@ -23,11 +24,12 @@ def move_window_around():
 
 
 def click_and_drag():
-    win_handler = WindowHandlers.WinHandler('Nox')
+    win_handler = WindowHandlers.WinHandler(class_name='Qt5QWindowIcon')
     win_handler.init_window()
     mouse_handler = MouseMovement.MouseMovement(win_handler)
     mouse_handler.hold_and_drag((150,150),(1000,1000),100)
     time.sleep(1)
+    
 
 
 
