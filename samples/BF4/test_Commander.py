@@ -42,7 +42,7 @@ class TestCommander(unittest.TestCase):
 
         title = parser.get('general', 'winTitle')
         assert (title is "Battlefield 4")
-        assert (win32gui.FindWindow(None, title) == cnc.get_win_handler().get_hwnd_by_title(title))
+        assert (win32gui.FindWindow(None, title) == cnc.get_win_handler().get_hwnd_by_title_class(title))
 
     def test_window_grab(self):
         logging.debug("Running pixel search test")

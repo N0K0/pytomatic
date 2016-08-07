@@ -3,6 +3,7 @@ import win32gui
 import win32ui
 from ctypes import windll
 
+import win32api
 import win32con
 import logging
 import sys
@@ -13,7 +14,8 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 
 class WinHandler:
-    def get_hwnd_by_title(self, class_text = None ,title_text= None):
+    def get_hwnd_by_title_class(self, class_text = None, title_text= None, parent_title = None,parent_class = None):
+
         """ Returns a windows window_handler
 
         Args:
@@ -26,15 +28,43 @@ class WinHandler:
             win32.error: If the windowtitle is invalid
 
         """
-        logging.debug("Where supplied title: " + str(title_text))
-        self.hwnd = win32gui.FindWindow(class_text, title_text)
+
+        child_hwnd = []
+        def child_enumerator(hwnd,param):
+            child_hwnd.append(hwnd)
+            return True
+
+        if parent_title is not None or parent_class is not None:
+            logging.debug("Where supplied title/class: {0}/{1}".format(str(title_text), str(class_text)))
+            parent_hwnd = self.get_hwnd_by_title_class(class_text=parent_class,title_text=parent_title)
+            win32gui.EnumChildWindows(parent_hwnd,child_enumerator,None)
+
+            for hwnd in child_hwnd:
+                print hwnd
+                hwnd_title = win32gui.GetWindowText(hwnd)
+                hwnd_class = win32gui.GetClassName(hwnd)
+                print '-'*20
+                print hwnd_title , " -- ", title_text
+                print hwnd_class , " -- ", class_text
+                print
+                if (hwnd_title == title_text and title_text is not None) or \
+                    (hwnd_class == class_text and class_text is not None):
+                    self.hwnd = hwnd
+                    return hwnd
+
+            # logging.debug("Found parent with title/class {0}{1} at {2}".format(parent_title,parent_class,parent_hwnd))
+            # self.hwnd = win32gui.FindWindowEx(parent_hwnd,0,class_text,title_text)
+        else:
+            logging.debug("Where supplied title/class: {0}/{1}".format(str(title_text), str(class_text)))
+            self.hwnd = win32gui.FindWindow(class_text, title_text)
+
 
         if self.hwnd == 0:
-            raise ValueError('Unable to find a window with that title')
+            raise ValueError('Unable to find a window with that title or class')
 
         return self.hwnd
 
-    def make_pyc_wnd(self, hwnd=-1):
+    def make_pyc_wnd(self, hwnd=None):
         """
         Creates a python window object from the hwnd handle found earlier
 
@@ -48,7 +78,7 @@ class WinHandler:
 
         """
         logging.debug("Make pyc hwnd with handle 0x%x" % hwnd)
-        if hwnd == -1:
+        if hwnd is None:
             logging.debug("Hwnd not supplied, using %x instead" % self.hwnd)
             hwnd = self.hwnd
 
@@ -177,9 +207,10 @@ class WinHandler:
         return bounding_box
 
     def get_bbox(self,hwnd=None):
-        '''
-        :return: A tuple with two elements. Containing the width and height of the default window
-        '''
+        """
+        Creates a tuple with four elements. The upper right coordinates
+                and the lower left coordinates.
+        """
         if hwnd is None:
             hwnd = self.get_hwnd()
 
@@ -201,6 +232,9 @@ class WinHandler:
         return bbox_size
 
     def __init__(self, title = None,class_name = None,config=None):
+        self.hwnd = None
+        self.pycwnd = None
+        self.bbox = None
 
         if config is not None:
             parser = SafeConfigParser()
@@ -210,9 +244,12 @@ class WinHandler:
             self.title = title
             self.class_name = class_name
 
-        self.hwnd = self.get_hwnd_by_title(self.class_name,self.title)
-        self.pycwnd = self.make_pyc_wnd(self.hwnd)
-        self.bbox = None
+        if self.title is not None or self.class_name is not None:
+            self.hwnd = self.get_hwnd_by_title_class(self.class_name, self.title)
+            self.pycwnd = self.make_pyc_wnd(self.hwnd)
+            self.bbox = None
+        else:
+            logging.warning("NOTE: No valid initializers for the window handler, user set_target() to set a window")
 
     def get_pycwnd(self):
         return self.pycwnd
@@ -222,6 +259,18 @@ class WinHandler:
 
     def get_title(self):
         return self.title
+
+    def set_hwnd(self,hwnd):
+        self.hwnd = hwnd
+        self.pycwnd = self.make_pyc_wnd(hwnd)
+
+    def set_target(self,title_name=None,class_name=None,parent_title=None,parent_class=None):
+        logging.debug('Setting target:\n\tTitle: {1}\n\tClass: {0}\n\tParent title:{2}\n\tParent class: {3}\n'
+                      .format(class_name,title_name,parent_title,parent_class))
+        self.hwnd = self.get_hwnd_by_title_class(class_name,title_name,parent_title,parent_class)
+        self.pycwnd = self.make_pyc_wnd(self.hwnd)
+        self.title = title_name
+        self.class_name = class_name
 
 
 if __name__ == '__main__':
