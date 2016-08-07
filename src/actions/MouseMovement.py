@@ -95,7 +95,6 @@ class MouseMovement:
         win32api.PostMessage(self._win_handler.get_hwnd(),win32con.WM_MOUSEMOVE,win32con.MK_LBUTTON,l_param)
 
     def hold_and_drag(self,start,end,steps,button="left"):
-        logging.warning('Hold and drag has not been tested')
         hwnd = self._win_handler.get_hwnd()
 
         if all(isinstance(elem, float) for elem in start):
@@ -138,7 +137,6 @@ class MouseMovement:
             time.sleep(0.01)
 
         l_param = win32api.MAKELONG(int(x), int(y))
-        #self._pycwnd.SendMessage(_button_up, 0, l_param)
         win32api.SendMessage(hwnd,_button_up,0,l_param)
         self._last_x = x
         self._last_y = y
