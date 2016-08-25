@@ -40,13 +40,8 @@ class WinHandler:
             win32gui.EnumChildWindows(parent_hwnd,child_enumerator,None)
 
             for hwnd in child_hwnd:
-                print hwnd
                 hwnd_title = win32gui.GetWindowText(hwnd)
                 hwnd_class = win32gui.GetClassName(hwnd)
-                print '-'*20
-                print hwnd_title , " -- ", title_text
-                print hwnd_class , " -- ", class_text
-                print
                 if (hwnd_title == title_text and title_text is not None) or \
                     (hwnd_class == class_text and class_text is not None):
                     self.hwnd = hwnd
@@ -184,6 +179,7 @@ class WinHandler:
 
         if hwnd == None:
             hwnd = self.hwnd
+
         logging.debug('Trying to find the box for 0x%x' % hwnd)
 
         self.bbox = win32gui.GetWindowRect(hwnd)

@@ -22,10 +22,7 @@ def extract_color_band(value, band):
 
 
 class PixelSearch:
-    def __init__(self, win_handler=None):
-        config = SafeConfigParser()
-        config.read('config.ini')
-
+    def __init__(self, win_handler = None):
         self.last_image = None
         self.wh = win_handler
 
@@ -55,11 +52,14 @@ class PixelSearch:
 
         logging.debug("Trying to capture window")
 
-        temp_img = ImageGrab.grab(self.wh.create_boundingbox(self.wh.get_hwnd()))
+        if bbox is None:
+            bbox = self.wh.create_boundingbox(self.wh.get_hwnd())
+
+        temp_img = ImageGrab.grab(bbox)
 
         if file is not None:
-            logging.debug("Saving image as {}".format('grab' + file))
-            temp_img.save('grab' + file)
+            logging.debug("Saving image as {}".format('grab_' + file))
+            temp_img.save('grab_' + file)
 
         self.last_image = temp_img
         return temp_img
@@ -79,7 +79,7 @@ class PixelSearch:
             :param compound:
         """
 
-        array = np.asarray(image, dtype="uint32")
+        array = np.asarray(image, dtype="uint8")
 
         # DEPRECATED
         if compound:

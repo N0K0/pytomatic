@@ -87,12 +87,24 @@ class MouseMovement:
 
         return self.click([self._last_x + x, self._last_y + y], button)
 
-    def move(self,coords):
+    def move(self,coords, button=None):
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
 
+        if button == None:
+            _button_state = 0
+        elif "right" in button.lower():
+            _button_state = win32con.MK_RBUTTON
+        elif "left" in button.lower():
+            _button_state = win32con.MK_LBUTTON
+        elif "middle" in button.lower():
+            _button_state = win32con.MK_MBUTTON
+
+        else:
+            raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
+
         l_param = win32api.MAKELONG(coords[0], coords[1])
-        win32api.PostMessage(self._win_handler.get_hwnd(),win32con.WM_MOUSEMOVE,win32con.MK_LBUTTON,l_param)
+        win32api.PostMessage(self._win_handler.get_hwnd(),win32con.WM_MOUSEMOVE,_button_state,l_param)
 
     def hold_and_drag(self,start,end,steps,button="left"):
         hwnd = self._win_handler.get_hwnd()
@@ -105,7 +117,6 @@ class MouseMovement:
 
         step_x = (float(end[0] - start[0])) / steps
         step_y = (float(end[1] - start[1])) / steps
-
 
         if "right" in button.lower():
             _button_state = win32con.MK_RBUTTON
@@ -133,7 +144,7 @@ class MouseMovement:
         for step in range(0,steps):
             x += step_x
             y += step_y
-            self.move((int(x),int(y)))
+            self.move((int(x),int(y)), button=button)
             time.sleep(0.01)
 
         l_param = win32api.MAKELONG(int(x), int(y))
