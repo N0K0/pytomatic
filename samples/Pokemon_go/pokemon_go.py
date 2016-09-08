@@ -35,6 +35,7 @@ def mouse_event(event, x, y, flags, param):
 
 
         cv2.imwrite(tf.name + '.png',img)
+
     return
 
 
