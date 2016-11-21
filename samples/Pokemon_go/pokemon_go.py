@@ -11,19 +11,16 @@ path = r"C:\Users\Neon\PycharmProjects\pytomatic\samples\Pokemon_go\training_dat
 
 config = {}
 
-def nothing(x):
-    pass
 
 def mouse_event(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDBLCLK:
 
-        print x, '--',y
+        print(x, '--',y)
 
         size = 20
 
         maxX,maxY, _ = param.shape
         tf = tempfile.NamedTemporaryFile(dir=path)
-
 
         if x < 0 + size: x = 0 + size
         if y < 0 + size: y = 0 + size
@@ -32,7 +29,6 @@ def mouse_event(event, x, y, flags, param):
         if maxY < y - size: y = maxY + size
 
         img = param[y-size:y+size,x-size:x+size]
-
 
         cv2.imwrite(tf.name + '.png',img)
 
@@ -46,15 +42,8 @@ def main():
     px_handler = Pixel_handler.PixelSearch(win_handler=main_win)
     mouse = Mouse_handler.MouseMovement(window_handler=main_win)
     main_win.init_window()
-    cv2.namedWindow('image')
+    cv2.namedWindow('image_name')
     cv2.namedWindow('config')
-
-    # create trackbars for color change
-    cv2.createTrackbar('R', 'config', 0, 255, nothing)
-    cv2.createTrackbar('G', 'config', 0, 255, nothing)
-    cv2.createTrackbar('B', 'config', 0, 255, nothing)
-    cv2.createTrackbar('Offset', 'config', 0, 255, nothing)
-
 
     while True:
 
@@ -62,8 +51,13 @@ def main():
         img = px_handler.img_to_numpy(img,compound=False)
         img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
 
-        cv2.imshow('image',img)
-        cv2.setMouseCallback('image', mouse_event, param=img)
+        orb = cv2.ORB_create()
+        kp = orb.detect(img, None)
+        kp, des = orb.compute(img, kp)
+        img2 = cv2.drawKeypoints(img, kp)
+
+        cv2.imshow('image_name',img2)
+        cv2.setMouseCallback('image_name', mouse_event, param=img)
 
 
         k = cv2.waitKey(1)

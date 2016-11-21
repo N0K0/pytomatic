@@ -19,10 +19,10 @@ def move_window_around():
 def click_and_drag():
     #Note this will not work if its the 64bit version of paint that starts
 
-    os.system('start /MAX mspaint.exe')
-    time.sleep(10)
+    os.system('start mspaint.exe')
+    time.sleep(5)
     win_handler = WindowHandlers.WinHandler()
-    win_handler.set_target(class_name='Afx:1f0000:8',parent_class='MSPaintApp')
+    win_handler.set_target(class_name='Afx:120000:8',parent_class='MSPaintApp')
     win_handler.init_window()
     mouse_handler = MouseMovement.MouseMovement(win_handler)
     for _ in range(0,100):
@@ -32,15 +32,8 @@ def click_and_drag():
         rand_w_e = random.randrange(0, bbox[2])
         rand_h_e = random.randrange(0, bbox[3])
 
-        mouse_handler.hold_and_drag((rand_w_s, rand_h_s), (rand_w_e, rand_h_e), steps=200,button="left")
-
-
-        rand_w_s = random.randrange(0, bbox[2])
-        rand_h_s = random.randrange(0, bbox[3])
-        rand_w_e = random.randrange(0, bbox[2])
-        rand_h_e = random.randrange(0, bbox[3])
-
-        mouse_handler.hold_and_drag((rand_w_s, rand_h_s), (rand_w_e, rand_h_e), steps=200,button="right")
+        mouse_handler.hold_and_drag((rand_w_s, rand_h_s), (rand_w_e, rand_h_e), steps=5,button="left")
+        time.sleep(0.05)
 
 
 click_and_drag()

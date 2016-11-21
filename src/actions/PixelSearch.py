@@ -43,7 +43,7 @@ class PixelSearch:
 
     def grab_window(self, file=None, bbox=None):
         """
-        Grabs the window and returns a image based on the on a hwnd and the
+        Grabs the window and returns a image_name based on the on a hwnd and the
             bounding box that follows.
 
         Returns:
@@ -58,7 +58,7 @@ class PixelSearch:
         temp_img = ImageGrab.grab(bbox)
 
         if file is not None:
-            logging.debug("Saving image as {}".format('grab_' + file))
+            logging.debug("Saving image_name as {}".format('grab_' + file))
             temp_img.save('grab_' + file)
 
         self.last_image = temp_img
@@ -70,7 +70,7 @@ class PixelSearch:
             array into an rgb array
 
         Args:
-            image (PIL.image): the image object to be converted
+            image_name (PIL.image_name): the image_name object to be converted
 
         Returns:
             A 2d/3d array with x*y elements. Each element represent a pixel with
