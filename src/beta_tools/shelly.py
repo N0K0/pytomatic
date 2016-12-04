@@ -33,8 +33,9 @@ C7 44 24 04 CC CC CC CC mov         dword ptr [rsp+4],0CCCCCCCCh
 
 output = \
 """
-char *shellcode = \
-{0}
+BYTE shellcode[{bytes}] = {{\n\
+{byte_block}
+}};
 """
 
 content = ""
@@ -47,12 +48,18 @@ reg = re.compile(regex, re.MULTILINE)
 
 lines = reg.findall(inputstring)
 print(inputstring)
+
+block = ''
+number_of_bytes = 0
 for line in lines:
     print(line)
-    opcodes_str = '"'
+    formatted_line = '\t'
+    bytes_on_line = line[0].strip().split(' ')
+    number_of_bytes += len(bytes_on_line)
     for opcode in line[0].strip().split(' '):
-        opcodes_str = opcodes_str + r"\x" + opcode
-    opcodes_str += '"'
-    content = content + '\t{opcodes:<40}// {comment}\n'.format(opcodes=opcodes_str,comment=line[1])
+        formatted_line += '0x' + str(opcode) + ', '
+    formatted_line += " "*((60 - len(bytes_on_line)*6)) + "//" + line[1].strip() + '\n'
+    block += formatted_line
 
-print(output.format(content))
+
+print(output.format(bytes=number_of_bytes,byte_block=block))
