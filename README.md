@@ -22,3 +22,9 @@ Like for example BF4 commander mode (Which is how this all started)
 * Mouse movement
     * Mouse movement recorder
     * Move movement primitives like curves
+* Hacking stuff
+    * Memory scanning and editing
+        * Address chaining
+    * Data structure analysis
+    * Windows API hooking
+        * Direct-X
