@@ -1,0 +1,6 @@
+{
+  "name": "Pytomatic",
+  "tagline": "Scripts and Macros for all sorts of things",
+  "body": "# What is Pytomatic\r\n\r\nPytomatic is a system i'm currently developing to automate tasks with Python. \r\nIts main focus is being a general purpose package for mainly games and other mouse-driven games. \r\nLike for example BF4 commander mode (Which is how this all started)\r\n\r\n## Features\r\n\r\n* Basic Window management\r\n* Basic Mouse control\r\n* Basic imaging\r\n\r\n\r\n## Coming soon™\r\n\r\n\r\n* Computer vision\r\n    * A working basic HAAR-based object detector\r\n    * Easy to use tools for training HAAR-based object classifiers\r\n        * Sample Generator\r\n        * Sample annotation tool\r\n* Mouse movement\r\n    * Mouse movement recorder\r\n    * Move movement primitives like curves\r\n* Hacking stuff\r\n    * Memory scanning and editing\r\n        * Address chaining\r\n    * Data structure analysis\r\n    * Windows API hooking\r\n        * Direct-X",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
