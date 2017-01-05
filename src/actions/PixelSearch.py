@@ -5,6 +5,7 @@ import numpy as np
 from ConfigParser import SafeConfigParser
 from PIL import ImageGrab
 from PIL import Image
+import helpers
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -22,7 +23,7 @@ def extract_color_band(value, band):
 
 
 class PixelSearch:
-    def __init__(self, win_handler = None):
+    def __init__(self, win_handler):
         self.last_image = None
         self.wh = win_handler
 
@@ -41,6 +42,15 @@ class PixelSearch:
 
         return hits
 
+    def grab_screen(self, file=None, bbox=None):
+        temp_img = ImageGrab.grab(bbox)
+
+        if file is not None:
+            logging.debug("Saving image_name as {}".format('grab_' + file))
+            temp_img.save('grab_' + file)
+
+        return temp_img
+
     def grab_window(self, file=None, bbox=None):
         """
         Grabs the window and returns a image_name based on the on a hwnd and the
@@ -53,7 +63,8 @@ class PixelSearch:
         logging.debug("Trying to capture window")
 
         if bbox is None:
-            bbox = self.wh.create_boundingbox(self.wh.get_hwnd())
+            hwnd = self.wh.get_hwnd()
+            bbox = self.wh.create_boundingbox(hwnd)
 
         temp_img = ImageGrab.grab(bbox)
 
