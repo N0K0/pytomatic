@@ -3,31 +3,22 @@ import re
 
 inputstring = \
 """
-void test(void) {
-55                   push        rbp
-48 83 EC 30          sub         rsp,30h
-48 8D 6C 24 20       lea         rbp,[rsp+20h]
-48 89 04 24          mov         qword ptr [rsp],rax
-48 C7 C0 2C 00 00 00 mov         rax,2Ch
-C7 04 04 CC CC CC CC mov         dword ptr [rsp+rax],0CCCCCCCCh
-48 83 E8 04          sub         rax,4
-48 83 F8 04          cmp         rax,4
-7F EF                jg          test+15h (07FF614841351h)
-48 8B 04 24          mov         rax,qword ptr [rsp]
-C7 04 24 CC CC CC CC mov         dword ptr [rsp],0CCCCCCCCh
-C7 44 24 04 CC CC CC CC mov         dword ptr [rsp+4],0CCCCCCCCh
-48 89 5D 00          mov         qword ptr [rbp],rbx
-	__asm {
-		push rax;
-50                   push        rax
-		push rbx;
-53                   push        rbx
+volatile void stump(void) {
+	char a = 0;
+88 44 24 24          mov         byte ptr [rsp+24h],al
+	char b = 0;
+88 44 24 25          mov         byte ptr [rsp+25h],al
 
-		pop rbx;
-5B                   pop         rbx
-		pop rax;
-58                   pop         rax
-	}
+	__asm {
+		mov rax, [a];
+48 8A 44 24 24       mov         al,byte ptr [rsp+24h]
+		mov rbx, [b];
+48 8A 5C 24 25       mov         bl,byte ptr [rsp+25h]
+		mov [b], rax;
+48 88 44 24 25       mov         byte ptr [rsp+25h],al
+		mov [a], rbx;
+48 88 5C 24 24       mov         byte ptr [rsp+24h],bl
+	stump();
 }
 """
 

@@ -7,7 +7,7 @@ This is a place to dump small helper tools that i'm been using in the developmen
 ## Overview of the tools
 
 ### Shelly
-A simple pythonscript to extract and format the shellcode given in an output-dump from visual studio
+A simple python script to extract and format the shellcode given in an output-dump from visual studio
 
 **Input:**
 ```     
@@ -40,7 +40,7 @@ C7 44 24 04 CC CC CC CC mov         dword ptr [rsp+4],0CCCCCCCCh
 ```
 **Output:**
 
-```
+```c
 char *shellcode = 	"\x55"                                  // push        rbp
 	"\x48\x83\xEC\x30"                      // sub         rsp,30h
 	"\x48\x8D\x6C\x24\x20"                  // lea         rbp,[rsp+20h]

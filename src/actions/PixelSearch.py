@@ -30,7 +30,7 @@ class PixelSearch:
         logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
 
         wnd = self.grab_window(file=debug, bbox=bbox)
-        px_data = self.img_to_numpy(wnd, compound=False)
+        px_data = self.img_to_numpy(wnd)
 
         if bbox:
             px_data = px_data[bbox[0]:bbox[2], bbox[1]:bbox[3]]
@@ -64,7 +64,7 @@ class PixelSearch:
         self.last_image = temp_img
         return temp_img
 
-    def img_to_numpy(self, image, compound=False):
+    def img_to_numpy(self, image):
         """
         Converts an PIL.Image object to a numpy array and then collapses the
             array into an rgb array
@@ -76,15 +76,9 @@ class PixelSearch:
             A 2d/3d array with x*y elements. Each element represent a pixel with
             an RGB value. For example 0xab01ee  -> RGB (171,1,238) or simply by
             having R G B as the third dimension of the matrix
-            :param compound:
         """
 
         array = np.asarray(image, dtype="uint8")
-
-        # DEPRECATED
-        if compound:
-            newarray = self.RGB_to_Hex(array)
-            return newarray
 
         return array
 
@@ -145,16 +139,3 @@ class PixelSearch:
 
         numpy_array = abs(array[:, :, :] - (r, g, b)) <= shade
         return numpy_array
-
-    @staticmethod
-    # DEPRECATED
-    def RGB_to_Hex(numpy_array):
-        logging.debug("Converting numpy_array to RGB")
-        array = np.asarray(numpy_array, dtype='uint32')
-        return (array[:, :, 0] << 16) + (array[:, :, 1] << 8) + array[:, :, 2]
-
-    @staticmethod
-    def get_red_pos(max_try=10):
-        print "Implement get_red_pos"
-        bbox = None
-        return bbox
