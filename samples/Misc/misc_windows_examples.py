@@ -1,9 +1,9 @@
 import os
 import time
 import random
-from src.actions import WindowHandlers
-from src.actions import PixelSearch
-from src.actions import MouseMovement
+from pytomatic.actions import WindowHandlers
+from pytomatic.actions import PixelSearch
+from pytomatic.actions import MouseMovement
 
 
 def move_window_around():

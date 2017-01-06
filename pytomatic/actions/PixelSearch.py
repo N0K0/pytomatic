@@ -5,7 +5,7 @@ import numpy as np
 from ConfigParser import SafeConfigParser
 from PIL import ImageGrab
 from PIL import Image
-import helpers
+import Helpers
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -24,14 +24,13 @@ def extract_color_band(value, band):
 
 class PixelSearch:
     def __init__(self, win_handler):
-        self.last_image = None
         self.wh = win_handler
 
-    def pixel_search(self, color, shades=0, bbox=None, debug=None):
+    def pixel_search(self, color, shades=0,bbox=None, debug=None):
         logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
 
-        wnd = self.grab_window(file=debug, bbox=bbox)
-        px_data = self.img_to_numpy(wnd)
+        wnd_img = self.grab_window(file=debug, bbox=bbox)
+        px_data = self.img_to_numpy(wnd_img)
 
         if bbox:
             px_data = px_data[bbox[0]:bbox[2], bbox[1]:bbox[3]]
@@ -52,6 +51,10 @@ class PixelSearch:
         return temp_img
 
     def grab_window(self, file=None, bbox=None):
+        if self.wh is None and bbox is None:
+            logging.error("You can not use grab grab_window without a windowhandler or a BBOX")
+            raise ReferenceError
+
         """
         Grabs the window and returns a image_name based on the on a hwnd and the
             bounding box that follows.
@@ -72,7 +75,6 @@ class PixelSearch:
             logging.debug("Saving image_name as {}".format('grab_' + file))
             temp_img.save('grab_' + file)
 
-        self.last_image = temp_img
         return temp_img
 
     def img_to_numpy(self, image):

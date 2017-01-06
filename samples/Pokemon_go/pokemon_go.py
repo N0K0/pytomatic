@@ -1,7 +1,7 @@
 import cv2
-import src.actions.WindowHandlers as Windows_handler
-import src.actions.PixelSearch as Pixel_handler
-import src.actions.MouseMovement as Mouse_handler
+import pytomatic.actions.WindowHandlers as Windows_handler
+import pytomatic.actions.PixelSearch as Pixel_handler
+import pytomatic.actions.MouseMovement as Mouse_handler
 import numpy as np
 import tempfile
 import sys

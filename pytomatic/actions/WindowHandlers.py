@@ -1,4 +1,3 @@
-from ConfigParser import SafeConfigParser
 import win32gui
 import win32ui
 from ctypes import windll
@@ -104,21 +103,13 @@ class WinHandler:
 
         logging.debug("Init window (0x%x)" % hwnd)
 
-        if pos is None:
-            pos = None
-
-            if config is not None:
-                config = SafeConfigParser()
-                config.read('config.ini')
-                pos = config.get('general', 'winPos').split(',')
-                pos = map(int, pos)
-
         if borderless:
             self.hide_extra_ui()
 
         if pos is not None:
             self.move(pos, hwnd)
         return win32gui.SetForegroundWindow(hwnd)
+
     def move(self, pos, hwnd=None):
         """
         :param pos: A tuple describing the (X,Y,Width,Height) of the window OR
@@ -129,7 +120,6 @@ class WinHandler:
 
         if hwnd is None:
             hwnd = self.get_hwnd()
-
 
         if len(pos) == 4:
             win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
@@ -164,7 +154,7 @@ class WinHandler:
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
         win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
 
-    def create_boundingbox(self, hwnd=None,windows_style=False):
+    def create_boundingbox(self, hwnd, windows_style=False):
         """
         Creates a bounding box of the window.
 
@@ -177,8 +167,8 @@ class WinHandler:
                 and the lower left coordinates.
         """
 
-        if hwnd == None:
-            hwnd = self.hwnd
+        if hwnd is None:
+            hwnd = win32gui.GetDesktopWindow()
 
         logging.debug('Trying to find the box for 0x%x' % hwnd)
 
@@ -207,8 +197,6 @@ class WinHandler:
         Creates a tuple with four elements. The upper right coordinates
                 and the lower left coordinates.
         """
-        if hwnd is None:
-            hwnd = self.get_hwnd()
 
         return self.create_boundingbox(hwnd)
 
@@ -219,8 +207,6 @@ class WinHandler:
         :return: a tuple, with the (width, height) data
         """
 
-        if hwnd is None:
-            hwnd = self.get_hwnd()
 
         bbox = self.get_bbox()
         bbox_size = bbox[2] - bbox[0], bbox[3] - bbox[1]
@@ -232,13 +218,8 @@ class WinHandler:
         self.pycwnd = None
         self.bbox = None
 
-        if config is not None:
-            parser = SafeConfigParser()
-            parser.read(config)
-            self.title = parser.get('general', 'winTitle')
-        else:
-            self.title = title
-            self.class_name = class_name
+        self.title = title
+        self.class_name = class_name
 
         if self.title is not None or self.class_name is not None:
             self.hwnd = self.get_hwnd_by_title_class(self.class_name, self.title)

@@ -9,9 +9,9 @@ import win32con
 from PIL import Image
 
 from BF_Commander import CommandAndControl
-from src.actions import PixelSearch as ps
-from src.actions import WindowHandlers as wh
-from src.actions import MouseMovement as mm
+from pytomatic.actions import PixelSearch as ps
+from pytomatic.actions import WindowHandlers as wh
+from pytomatic.actions import MouseMovement as mm
 
 
 class TestCommander(unittest.TestCase):
