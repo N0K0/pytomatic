@@ -6,6 +6,10 @@ from ConfigParser import SafeConfigParser
 from PIL import ImageGrab
 from PIL import Image
 import Helpers
+from ctypes import windll, c_int, c_uint, c_char_p, c_buffer
+from struct import calcsize, pack
+import win32con
+
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -42,6 +46,8 @@ class PixelSearch:
         return hits
 
     def grab_screen(self, file=None, bbox=None):
+        # TODO: Fix this brokenass shit (can only cap primary screen atm)
+        # http://stackoverflow.com/questions/3585293/pil-imagegrab-fails-on-2nd-virtual-monitor-of-virtualbox
         temp_img = ImageGrab.grab(bbox)
 
         if file is not None:
@@ -51,17 +57,17 @@ class PixelSearch:
         return temp_img
 
     def grab_window(self, file=None, bbox=None):
-        if self.wh is None and bbox is None:
-            logging.error("You can not use grab grab_window without a windowhandler or a BBOX")
-            raise ReferenceError
-
         """
         Grabs the window and returns a image_name based on the on a hwnd and the
             bounding box that follows.
 
         Returns:
-            PIL.Image.Image: Returns the imagedata grabbed by pillow
+            PIL.Image.Image: Returns the image data grabbed by pillow
         """
+
+        if self.wh.get_hwnd() is None and bbox is None:
+            logging.error("You can not use grab grab_window without a windowhandler target or a BBOX")
+            raise ReferenceError("You can not use grab grab_window without a windowhandler target or a BBOX")
 
         logging.debug("Trying to capture window")
 
@@ -69,13 +75,72 @@ class PixelSearch:
             hwnd = self.wh.get_hwnd()
             bbox = self.wh.create_boundingbox(hwnd)
 
-        temp_img = ImageGrab.grab(bbox)
 
-        if file is not None:
-            logging.debug("Saving image_name as {}".format('grab_' + file))
-            temp_img.save('grab_' + file)
+        gdi32 = windll.gdi32
+        # Win32 functions
+        CreateDC = gdi32.CreateDCA
+        CreateCompatibleDC = gdi32.CreateCompatibleDC
+        GetDeviceCaps = gdi32.GetDeviceCaps
+        CreateCompatibleBitmap = gdi32.CreateCompatibleBitmap
+        BitBlt = gdi32.BitBlt
+        SelectObject = gdi32.SelectObject
+        GetDIBits = gdi32.GetDIBits
+        DeleteDC = gdi32.DeleteDC
+        DeleteObject = gdi32.DeleteObject
 
-        return temp_img
+        # Win32 constants
+        NULL = 0
+        HORZRES = 8
+        VERTRES = 10
+        SRCCOPY = 13369376
+        HGDI_ERROR = 4294967295
+        ERROR_INVALID_PARAMETER = 87
+
+        try:
+            screen = CreateDC(c_char_p('DISPLAY'), NULL, NULL, NULL)
+            screen_copy = CreateCompatibleDC(screen)
+
+            if bbox:
+                left, top, x2, y2 = bbox
+                width = x2 - left + 1
+                height = y2 - top + 1
+            else:
+                left = windll.user32.GetSystemMetrics(win32con.SM_XVIRTUALSCREEN)
+                top = windll.user32.GetSystemMetrics(win32con.SM_YVIRTUALSCREEN)
+                width = windll.user32.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
+                height = windll.user32.GetSystemMetrics(win32con.SM_CYVIRTUALSCREEN)
+
+            bitmap = CreateCompatibleBitmap(screen, width, height)
+            if bitmap == NULL:
+                print('grab_screen: Error calling CreateCompatibleBitmap. Returned NULL')
+                return
+
+            hobj = SelectObject(screen_copy, bitmap)
+            if hobj == NULL or hobj == HGDI_ERROR:
+                print('grab_screen: Error calling SelectObject. Returned {0}.'.format(hobj))
+                return
+
+            if BitBlt(screen_copy, 0, 0, width, height, screen, left, top, SRCCOPY) == NULL:
+                print('grab_screen: Error calling BitBlt. Returned NULL.')
+                return
+
+            bitmap_header = pack('LHHHH', calcsize('LHHHH'), width, height, 1, 24)
+            bitmap_buffer = c_buffer(bitmap_header)
+            bitmap_bits = c_buffer(' ' * (height * ((width * 3 + 3) & -4)))
+            got_bits = GetDIBits(screen_copy, bitmap, 0, height, bitmap_bits, bitmap_buffer, 0)
+            if got_bits == NULL or got_bits == ERROR_INVALID_PARAMETER:
+                print('grab_screen: Error calling GetDIBits. Returned {0}.'.format(got_bits))
+                return
+
+            image = Image.frombuffer('RGB', (width, height), bitmap_bits, 'raw', 'BGR', (width * 3 + 3) & -4, -1)
+            return image
+        finally:
+            if bitmap is not None:
+                if bitmap:
+                    DeleteObject(bitmap)
+                DeleteDC(screen_copy)
+                DeleteDC(screen)
+
 
     def img_to_numpy(self, image):
         """

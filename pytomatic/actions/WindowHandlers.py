@@ -19,6 +19,7 @@ class WinHandler:
 
         Args:
             title_text (string): the title of the window we are looking for
+            SPECIAL CASE: if "desktop:n" is given, a handle to the desktop number n handle is given
 
         Returns:
             int: the handler for the window if found
@@ -27,6 +28,18 @@ class WinHandler:
             win32.error: If the windowtitle is invalid
 
         """
+
+        if 'desktop:' in title_text.lower():
+            _ , num = title_text.lower().split(':',1)
+            num = int(num)
+            monitors = win32api.EnumDisplayMonitors()
+            tar_mon = monitors[num]
+            self.hwnd = tar_mon[1]
+            return self.hwnd
+
+        if title_text.lower() == "desktop":
+            self.hwnd = win32gui.GetDesktopWindow()
+            return self.hwnd
 
         child_hwnd = []
         def child_enumerator(hwnd,param):
@@ -73,7 +86,7 @@ class WinHandler:
         """
         logging.debug("Make pyc hwnd with handle 0x%x" % hwnd)
         if hwnd is None:
-            logging.debug("Hwnd not supplied, using %x instead" % self.hwnd)
+            logging.debug("Hwnd not supplied, using {} instead".format(self.hwnd))
             hwnd = self.hwnd
 
         if hwnd == 0:
@@ -137,6 +150,8 @@ class WinHandler:
         logging.debug('Trying to manipulate UI')
 
         if hwnd is None:
+            if hwnd is None:
+                raise ValueError("Neither Bbox or HWND is defined. At least one of them need to be defined")
             hwnd = self.get_hwnd()
 
         style = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
@@ -163,14 +178,11 @@ class WinHandler:
                 the hwnd from the last get_hwnd_by_title will be used
 
         Returns:
-            Creates a tuple with four elements. The upper right coordinates
-                and the lower left coordinates.
+            Creates a tuple with four elements. The upper left coordinates
+                and the lower right coordinates. (left, top, right,buttom window borders)
         """
 
-        if hwnd is None:
-            hwnd = win32gui.GetDesktopWindow()
-
-        logging.debug('Trying to find the box for 0x%x' % hwnd)
+        logging.debug('Trying to find the box for {}'.format(hwnd))
 
         self.bbox = win32gui.GetWindowRect(hwnd)
         logging.debug('Found %s' % ','.join(map(str, self.bbox)))
@@ -204,6 +216,7 @@ class WinHandler:
         """
         :param hwnd: If supplied: Calculates the size of boundingbox for the given handle.
             If not:  the boundingbox for the default window
+
         :return: a tuple, with the (width, height) data
         """
 
@@ -241,6 +254,36 @@ class WinHandler:
         self.hwnd = hwnd
         self.pycwnd = self.make_pyc_wnd(hwnd)
 
+    def get_desktop_stats(self):
+
+        left = windll.user32.GetSystemMetrics(win32con.SM_XVIRTUALSCREEN)
+        top = windll.user32.GetSystemMetrics(win32con.SM_YVIRTUALSCREEN)
+        width = windll.user32.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
+        height = windll.user32.GetSystemMetrics(win32con.SM_CYVIRTUALSCREEN)
+
+        logging.debug("Desktop stats: Origo: {}\tSize: {}".format((left,top),(width,height)))
+        return left,top,width,height
+
+
+
+    def translate_virt_to_real(self,pos):
+        """
+        This function takes a boundingbox found in the virutal space (IE where negative coordinates are possible
+            and origo is on the primary screen) and outputs them as absolute coordinates where origo is top-left og all
+            screens. The boundingbox needed is created by the create_boundingbox() function
+        Args:
+            pos: (left,top,right,buttom)
+
+        Returns:
+            translated (X_pox, Y_pos, windows_width, window_height)
+        """
+
+        left, top, _, _ = self.get_desktop_stats()
+
+        translated = (pos[0]-left,pos[1]-top,pos[2]-left,pos[3]-left)
+        logging.debug("Virt to real: {} -> {}".format(pos,translated))
+
+        return translated
     def set_target(self,title_name=None,class_name=None,parent_title=None,parent_class=None):
         logging.debug('Setting target:\n\tTitle: {1}\n\tClass: {0}\n\tParent title:{2}\n\tParent class: {3}\n'
                       .format(class_name,title_name,parent_title,parent_class))
