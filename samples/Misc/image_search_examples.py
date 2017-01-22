@@ -11,12 +11,12 @@ def search_for_pixels():
 
 
 def multi_screen():
-    wh = WindowHandlers.WinHandler()
+    wh = WindowHandlers.WinHandler("Netflix")
     print(wh.get_desktop_stats())
     px = PixelSearch.PixelSearch(win_handler=wh)
 
-    img = px.grab_window()
-    img.show()
+    mat = px.pixel_search(0xA87161,12)
+    Helpers.Helpers.show_matrix(mat)
 
 
 multi_screen()

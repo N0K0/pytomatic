@@ -2,6 +2,7 @@ import win32gui
 import win32ui
 from ctypes import windll
 
+
 import win32api
 import win32con
 import logging
@@ -112,7 +113,7 @@ class WinHandler:
         """
 
         if hwnd is None:
-            hwnd = self.hwnd
+            hwnd = self.get_hwnd()
 
         logging.debug("Init window (0x%x)" % hwnd)
 
@@ -150,8 +151,6 @@ class WinHandler:
         logging.debug('Trying to manipulate UI')
 
         if hwnd is None:
-            if hwnd is None:
-                raise ValueError("Neither Bbox or HWND is defined. At least one of them need to be defined")
             hwnd = self.get_hwnd()
 
         style = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
@@ -169,7 +168,7 @@ class WinHandler:
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
         win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
 
-    def create_boundingbox(self, hwnd, windows_style=False):
+    def create_boundingbox(self, hwnd = None, windows_style=False):
         """
         Creates a bounding box of the window.
 
@@ -181,6 +180,9 @@ class WinHandler:
             Creates a tuple with four elements. The upper left coordinates
                 and the lower right coordinates. (left, top, right,buttom window borders)
         """
+
+        if hwnd is None:
+            hwnd = self.get_hwnd()
 
         logging.debug('Trying to find the box for {}'.format(hwnd))
 
@@ -226,6 +228,31 @@ class WinHandler:
         logging.debug('Found following size: %d, %d' % (bbox[2] - bbox[0], bbox[3] - bbox[1]))
         return bbox_size
 
+    def bbox_scale(self,bbox, scale):
+        """
+        Args:
+            bbox: A bounding box to scale
+            scale: The target scale for the matrix
+
+        Returns:
+            A new boundingbox with the new scale
+        """
+
+        def percent_in_range(start,stop,scale):
+            return ((stop - start) * scale) + start
+
+        centre = bbox[0] + (bbox[2] - bbox[0]) / 2 ,bbox[1]+ (bbox[3]-bbox[1]) / 2
+
+        left    = int(percent_in_range(centre[0],bbox[0],scale))
+        right   = int(percent_in_range(centre[0],bbox[2],scale))
+        top     = int(percent_in_range(centre[1],bbox[1],scale))
+        bottom  = int(percent_in_range(centre[1],bbox[3],scale))
+        scaled_box = (left,top,right,bottom)
+
+        logging.debug("Scaled bbox: {} ({}%) -> {}".format(bbox,scale*100,scaled_box))
+
+        return scaled_box
+
     def __init__(self, title = None,class_name = None,config=None):
         self.hwnd = None
         self.pycwnd = None
@@ -255,7 +282,6 @@ class WinHandler:
         self.pycwnd = self.make_pyc_wnd(hwnd)
 
     def get_desktop_stats(self):
-
         left = windll.user32.GetSystemMetrics(win32con.SM_XVIRTUALSCREEN)
         top = windll.user32.GetSystemMetrics(win32con.SM_YVIRTUALSCREEN)
         width = windll.user32.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
@@ -284,6 +310,7 @@ class WinHandler:
         logging.debug("Virt to real: {} -> {}".format(pos,translated))
 
         return translated
+
     def set_target(self,title_name=None,class_name=None,parent_title=None,parent_class=None):
         logging.debug('Setting target:\n\tTitle: {1}\n\tClass: {0}\n\tParent title:{2}\n\tParent class: {3}\n'
                       .format(class_name,title_name,parent_title,parent_class))

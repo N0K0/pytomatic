@@ -9,7 +9,6 @@ import sys
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
-#TODO: Test win32api's mouseevent api
 #https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
 class MouseMovement:
     def click(self, coords, button="left",hold=False):
@@ -31,7 +30,7 @@ class MouseMovement:
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
 
-        hwnd = self._win_handler.get_hwnd()
+        hwnd = self.win_handler.get_hwnd()
 
         logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
 
@@ -104,10 +103,10 @@ class MouseMovement:
             raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
 
         l_param = win32api.MAKELONG(coords[0], coords[1])
-        win32api.PostMessage(self._win_handler.get_hwnd(),win32con.WM_MOUSEMOVE,_button_state,l_param)
+        win32api.PostMessage(self.win_handler.get_hwnd(), win32con.WM_MOUSEMOVE, _button_state, l_param)
 
     def hold_and_drag(self,start,end,steps,button="left"):
-        hwnd = self._win_handler.get_hwnd()
+        hwnd = self.win_handler.get_hwnd()
 
         if all(isinstance(elem, float) for elem in start):
             start = self.to_pixel(start)
@@ -153,30 +152,39 @@ class MouseMovement:
         self._last_y = y
 
 
-    def to_coord(self, pos_x, pos_y):
-        print "Implement to_coord"
-        raise NotImplementedError
+    def to_ratio(self, coords):
+        size_vertical, size_horizontal = self.win_handler.get_bbox_size()
 
-    def to_pixel(self, coords):
+        x, y = coords[0] / size_horizontal, coords[1] / size_vertical
+        return float(x),float(y)
+
+    def to_pixel(self, coords, bbox = None):
         """
         Args:
             coords (touple): a pair of floating point numbers between 0.0 and 1.0
                 representing a percentage of the screen in the x/y directions
+            bbox (touple):
         Returns:
             touple: a pair of integers representing the actual coordinates in
                 the form of pixels
         """
 
-        self.window_size = self._pycwnd.GetWindowPlacement()[4]
-        size_vert = int(self.window_size[3] - self.window_size[1])
-        size_horiz = int(self.window_size[2] - self.window_size[0])
-        x, y = coords[0] * size_horiz, coords[1] * size_vert
+        if bbox is None:
+            bbox = self.win_handler.create_boundingbox()
+            size_vertical,size_horizontal = self.win_handler.get_bbox_size()
+        else:
+            size_vertical = bbox[2] - bbox[0]
+            size_horizontal = bbox[3] - bbox[1]
+
+        x, y = coords[0] * size_horizontal, coords[1] * size_vertical
+
+        logging.debug("To Pixel: {} -> {} in the box {}".format(coords,(x,y),bbox))
 
         return int(x), int(y)
 
     def __init__(self, window_handler):
         self._last_x = 0
         self._last_y = 0
-        self._win_handler = window_handler
-        self._pycwnd = self._win_handler.get_pycwnd()
+        self.win_handler = window_handler
+        self._pycwnd = self.win_handler.get_pycwnd()
         self.window_size = self._pycwnd.GetWindowPlacement()[4]

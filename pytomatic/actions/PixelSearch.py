@@ -2,11 +2,10 @@ import logging
 import sys
 from time import sleep
 import numpy as np
-from ConfigParser import SafeConfigParser
 from PIL import ImageGrab
 from PIL import Image
-import Helpers
-from ctypes import windll, c_int, c_uint, c_char_p, c_buffer
+from pytomatic.actions.Helpers import Helpers
+from ctypes import windll, c_int, c_uint, c_char_p, create_string_buffer
 from struct import calcsize, pack
 import win32con
 
@@ -56,7 +55,7 @@ class PixelSearch:
 
         return temp_img
 
-    def grab_window(self, file=None, bbox=None):
+    def grab_window(self, bbox=None,file=None):
         """
         Grabs the window and returns a image_name based on the on a hwnd and the
             bounding box that follows.
@@ -97,7 +96,8 @@ class PixelSearch:
         ERROR_INVALID_PARAMETER = 87
 
         try:
-            screen = CreateDC(c_char_p('DISPLAY'), NULL, NULL, NULL)
+
+            screen = CreateDC(c_char_p(b'DISPLAY'), NULL, NULL, NULL)
             screen_copy = CreateCompatibleDC(screen)
 
             if bbox:
@@ -125,8 +125,8 @@ class PixelSearch:
                 return
 
             bitmap_header = pack('LHHHH', calcsize('LHHHH'), width, height, 1, 24)
-            bitmap_buffer = c_buffer(bitmap_header)
-            bitmap_bits = c_buffer(' ' * (height * ((width * 3 + 3) & -4)))
+            bitmap_buffer = create_string_buffer(bitmap_header)
+            bitmap_bits = create_string_buffer(b' ' * (height * ((width * 3 + 3) & -4)))
             got_bits = GetDIBits(screen_copy, bitmap, 0, height, bitmap_bits, bitmap_buffer, 0)
             if got_bits == NULL or got_bits == ERROR_INVALID_PARAMETER:
                 print('grab_screen: Error calling GetDIBits. Returned {0}.'.format(got_bits))
@@ -140,7 +140,6 @@ class PixelSearch:
                     DeleteObject(bitmap)
                 DeleteDC(screen_copy)
                 DeleteDC(screen)
-
 
     def img_to_numpy(self, image):
         """
