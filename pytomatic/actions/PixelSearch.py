@@ -8,7 +8,8 @@ from pytomatic.actions.Helpers import Helpers
 from ctypes import windll, c_int, c_uint, c_char_p, create_string_buffer
 from struct import calcsize, pack
 import win32con
-
+import cv2
+from matplotlib import pyplot as plt
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
@@ -197,10 +198,53 @@ class PixelSearch:
 
         return array
 
-    def find_subimage_in_array(self,sub_image, image):
-        bbox = None
+    def find_subimage_in_array(self,sub_image, main_image,threshold = None, debug = False):
+        """
+        http://docs.opencv.org/3.1.0/d4/dc6/tutorial_py_template_matching.html
 
-        return bbox
+        Args:
+            sub_image: A numby matrix containing the template we are trying to match
+            main_image: A numpy array containing the main image we are trying to find the template in
+            threshold: A treshhold regarding hos sensitive the matching should be. If its set to None, only the best match is returned
+        Returns:
+            If treshold is none:
+                The bounding box of the best resulting area
+            Else:
+                A list of bounding boxes of varying accuracy
+
+        """
+        # TODO: Check the test_init_wnd test for how to implement this :)
+        logging.debug("Doing a template match with {} as threshold".format(threshold))
+        methods = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
+        method = methods[1]
+
+        h, w = sub_image.shape[0:2]
+
+        res = cv2.matchTemplate(main_image,sub_image,method)
+
+        if threshold is None:
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+            top_left = max_loc
+            bottom_right = (top_left[0] + w, top_left[1] + h)
+            if debug:
+                cv2.rectangle(main_image, top_left, bottom_right, 255, 2)
+                plt.imshow(main_image)
+                plt.show()
+            return res[0], res[1] , res[0] + w, res[1] + h
+
+        else:
+            loc = np.where(res >= threshold)
+            locations = []
+            for pt in zip(*loc[::-1]):
+                locations.append((res[0],res[1],res[0]+w,res[1]+h))
+
+            if debug:
+                for pt in zip(*loc[::-1]):
+                    cv2.rectangle(main_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+                plt.imshow(main_image)
+                plt.show()
+            return loc
+
 
 
     @staticmethod
