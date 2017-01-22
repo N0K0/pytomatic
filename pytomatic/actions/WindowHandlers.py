@@ -70,6 +70,7 @@ class WinHandler:
         if self.hwnd == 0:
             raise ValueError('Unable to find a window with that title or class')
 
+        logging.debug("Found window 0x{:2X}".format(self.hwnd))
         return self.hwnd
 
     def make_pyc_wnd(self, hwnd=None):

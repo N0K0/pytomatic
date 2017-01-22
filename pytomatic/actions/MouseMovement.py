@@ -56,7 +56,7 @@ class MouseMovement:
 
         win32api.SendMessage(hwnd, win32con.WM_MOUSEMOVE,0,l_param)
 
-        time.sleep(0.1)
+        time.sleep(0.2)
         win32api.SendMessage(hwnd,_button_down, _button_state, l_param)
         time.sleep(0.1)
 
@@ -66,6 +66,10 @@ class MouseMovement:
         self._last_x = x
         self._last_y = y
         return True
+
+    def release_button(self):
+        # TODO: Implement this
+        raise NotImplementedError
 
     def offset_click(self, x, y, button="left"):
         """
@@ -150,7 +154,6 @@ class MouseMovement:
         win32api.SendMessage(hwnd,_button_up,0,l_param)
         self._last_x = x
         self._last_y = y
-
 
     def to_ratio(self, coords):
         size_vertical, size_horizontal = self.win_handler.get_bbox_size()

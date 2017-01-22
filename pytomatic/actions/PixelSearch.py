@@ -230,13 +230,16 @@ class PixelSearch:
                 cv2.rectangle(main_image, top_left, bottom_right, 255, 2)
                 plt.imshow(main_image)
                 plt.show()
-            return res[0], res[1] , res[0] + w, res[1] + h
+            bounding_box = top_left[0], top_left[1] , bottom_right[0], bottom_right[1]
+            logging.debug("Found the following area with templating: {}"
+                          .format(bounding_box))
+            return bounding_box
 
         else:
             loc = np.where(res >= threshold)
             locations = []
             for pt in zip(*loc[::-1]):
-                locations.append((res[0],res[1],res[0]+w,res[1]+h))
+                locations.append((pt[0],pt[1],pt[0]+w,pt[1]+h))
 
             if debug:
                 for pt in zip(*loc[::-1]):
