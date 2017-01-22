@@ -115,7 +115,7 @@ class WinHandler:
         if hwnd is None:
             hwnd = self.get_hwnd()
 
-        logging.debug("Init window (0x%x)" % hwnd)
+        logging.debug("Init window 0x{:2x}".format(hwnd))
 
         if borderless:
             self.hide_extra_ui()
@@ -184,10 +184,10 @@ class WinHandler:
         if hwnd is None:
             hwnd = self.get_hwnd()
 
-        logging.debug('Trying to find the box for {}'.format(hwnd))
+        logging.debug('Trying to find the box for 0x{:2X}'.format(hwnd))
 
         self.bbox = win32gui.GetWindowRect(hwnd)
-        logging.debug('Found %s' % ','.join(map(str, self.bbox)))
+        logging.debug('Found {}'.format(self.bbox))
 
         if windows_style:
             pos_size = self.get_bbox_size(self.get_bbox())

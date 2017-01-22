@@ -197,6 +197,12 @@ class PixelSearch:
 
         return array
 
+    def find_subimage_in_array(self,sub_image, image):
+        bbox = None
+
+        return bbox
+
+
     @staticmethod
     def aproximate_color_2d(target, found, shade):
         red = abs((found >> 16) - (target >> 16)) <= shade
