@@ -60,15 +60,36 @@ class MouseMovement:
         win32api.SendMessage(hwnd,_button_down, _button_state, l_param)
         time.sleep(0.1)
 
-        if hold: #Do not release the button if hold is true
+        if not hold: #Do not release the button if hold is true
             win32api.SendMessage(hwnd, _button_up, 0, l_param)
 
         self._last_x = x
         self._last_y = y
         return True
 
-    def release_button(self):
-        # TODO: Implement this
+    def release_button(self, coords, button = "left"):
+
+        if "right" in button.lower():
+            _button_up = win32con.WM_RBUTTONUP
+        elif "left" in button.lower():
+            _button_up = win32con.WM_LBUTTONUP
+        elif "middle" in button.lower():
+            _button_up = win32con.WM_MBUTTONUP
+        else:
+            raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
+
+        if all(isinstance(elem, float) for elem in coords):
+            coords = self.to_pixel(coords)
+        x = coords[0]
+        y = coords[1]
+
+        l_param = win32api.MAKELONG(x, y)
+
+
+        hwnd = self.win_handler.get_hwnd()
+        win32api.SendMessage(hwnd, _button_up, 0, l_param)
+
+
         raise NotImplementedError
 
     def offset_click(self, x, y, button="left"):

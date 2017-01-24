@@ -1,4 +1,5 @@
 import logging
+import operator
 import sys
 from time import sleep
 import numpy as np
@@ -198,19 +199,22 @@ class PixelSearch:
 
         return array
 
-    def find_subimage_in_array(self,sub_image, main_image,threshold = None, debug = False):
+    def find_subimage_in_array(self,sub_image, main_image,threshold = 0.40, value = True,debug = False):
         """
         http://docs.opencv.org/3.1.0/d4/dc6/tutorial_py_template_matching.html
 
         Args:
             sub_image: A numby matrix containing the template we are trying to match
             main_image: A numpy array containing the main image we are trying to find the template in
-            threshold: A treshhold regarding hos sensitive the matching should be. If its set to None, only the best match is returned
+            value: If true: Similarity is sent back.
+            threshold: A treshhold regarding hos sensitive the matching should be.
         Returns:
-            If treshold is none:
-                The bounding box of the best resulting area
-            Else:
-                A list of bounding boxes of varying accuracy
+            A list containing touples:
+                If value is true:
+                    The touples got he following elements(left,top,right,down,similarity)
+                    Where similarity is a measure toward one
+                Else:
+                    The touples got he following elements(left,top,right,down)
 
         """
         # TODO: Check the test_init_wnd test for how to implement this :)
@@ -222,31 +226,24 @@ class PixelSearch:
 
         res = cv2.matchTemplate(main_image,sub_image,method)
 
-        if threshold is None:
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-            top_left = max_loc
-            bottom_right = (top_left[0] + w, top_left[1] + h)
-            if debug:
-                cv2.rectangle(main_image, top_left, bottom_right, 255, 2)
-                plt.imshow(main_image)
-                plt.show()
-            bounding_box = top_left[0], top_left[1] , bottom_right[0], bottom_right[1]
-            logging.debug("Found the following area with templating: {}"
-                          .format(bounding_box))
-            return bounding_box
-
-        else:
-            loc = np.where(res >= threshold)
-            locations = []
-            for pt in zip(*loc[::-1]):
+        loc = np.where(res >= threshold)
+        locations = []
+        for pt in zip(*loc[::-1]):
+            if value:
+                locations.append((pt[0],pt[1],pt[0]+w,pt[1]+h,res[pt[1],pt[0]]))
+            else:
                 locations.append((pt[0],pt[1],pt[0]+w,pt[1]+h))
 
-            if debug:
-                for pt in zip(*loc[::-1]):
-                    cv2.rectangle(main_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
-                plt.imshow(main_image)
-                plt.show()
-            return loc
+        logging.debug("Found {} locations".format(len(locations)))
+        if debug:
+            for pt in zip(*loc[::-1]):
+                cv2.rectangle(main_image, pt, (pt[0] + w, pt[1] + h), (255, 0, 255), 2)
+            plt.imshow(main_image)
+            plt.show()
+
+        if value:
+            locations.sort(reverse=True, key=operator.itemgetter(4))
+        return list(map(operator.itemgetter(0,1,2,3),locations))
 
 
 
