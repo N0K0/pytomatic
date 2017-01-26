@@ -2,6 +2,8 @@ import logging
 import operator
 import sys
 from time import sleep
+
+import numpy
 import numpy as np
 from PIL import ImageGrab
 from PIL import Image
@@ -11,10 +13,13 @@ from struct import calcsize, pack
 import win32con
 import cv2
 from matplotlib import pyplot as plt
+from operator import itemgetter
+from cv2.xfeatures2d import SIFT_create
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
+
+# logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 def extract_color_band(value, band):
     if band == 1 or band == 'R':
@@ -31,7 +36,7 @@ class PixelSearch:
     def __init__(self, win_handler):
         self.wh = win_handler
 
-    def pixel_search(self, color, shades=0,bbox=None, debug=None):
+    def pixel_search(self, color, shades=0, bbox=None, debug=None):
         logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
 
         wnd_img = self.grab_window(file=debug, bbox=bbox)
@@ -57,7 +62,7 @@ class PixelSearch:
 
         return temp_img
 
-    def grab_window(self, bbox=None,file=None):
+    def grab_window(self, bbox=None, file=None):
         """
         Grabs the window and returns a image_name based on the on a hwnd and the
             bounding box that follows.
@@ -75,7 +80,6 @@ class PixelSearch:
         if bbox is None:
             hwnd = self.wh.get_hwnd()
             bbox = self.wh.create_boundingbox(hwnd)
-
 
         gdi32 = windll.gdi32
         # Win32 functions
@@ -199,7 +203,7 @@ class PixelSearch:
 
         return array
 
-    def find_subimage_in_array(self,sub_image, main_image,threshold = 0.40, value = True,debug = False):
+    def find_subimage_in_array(self, sub_image, main_image, threshold=0.40, value=False, debug=False):
         """
         http://docs.opencv.org/3.1.0/d4/dc6/tutorial_py_template_matching.html
 
@@ -219,23 +223,28 @@ class PixelSearch:
         """
         # TODO: Check the test_init_wnd test for how to implement this :)
         logging.debug("Doing a template match with {} as threshold".format(threshold))
-        methods = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
-        method = methods[1]
+        methods = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR, cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF,
+                   cv2.TM_SQDIFF_NORMED]
+        method = methods[0]
 
         h, w = sub_image.shape[0:2]
 
-        res = cv2.matchTemplate(main_image,sub_image,method)
+        res = cv2.matchTemplate(main_image, sub_image, method)
 
         loc = np.where(res >= threshold)
         locations = []
         for pt in zip(*loc[::-1]):
             if value:
-                locations.append((pt[0],pt[1],pt[0]+w,pt[1]+h,res[pt[1],pt[0]]))
+                locations.append((pt[0], pt[1], pt[0] + w, pt[1] + h, res[pt[1], pt[0]]))
             else:
-                locations.append((pt[0],pt[1],pt[0]+w,pt[1]+h))
+                locations.append((pt[0], pt[1], pt[0] + w, pt[1] + h))
 
         logging.debug("Found {} locations".format(len(locations)))
         if debug:
+            plt.subplot(121), plt.imshow(res, cmap='gray')
+            plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+            plt.subplot(122), plt.imshow(main_image, cmap='gray')
+            plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
             for pt in zip(*loc[::-1]):
                 cv2.rectangle(main_image, pt, (pt[0] + w, pt[1] + h), (255, 0, 255), 2)
             plt.imshow(main_image)
@@ -243,9 +252,116 @@ class PixelSearch:
 
         if value:
             locations.sort(reverse=True, key=operator.itemgetter(4))
-        return list(map(operator.itemgetter(0,1,2,3),locations))
+        return list(map(operator.itemgetter(0, 1, 2, 3), locations))
 
+    def find_features_in_array_SIFT(self, sub_image, main_image, debug=False):
+        # Initiate SIFT detector
+        sift = SIFT_create()
 
+        # find the keypoints and descriptors with SIFT
+        kp1, des1 = sift.detectAndCompute(sub_image, None)
+        kp2, des2 = sift.detectAndCompute(main_image, None)
+
+        # BFMatcher with default params
+        bf = cv2.BFMatcher()
+        matches = bf.knnMatch(des1, des2, k=2)
+
+        logging.debug("Found {} possible matches".format(len(matches)))
+
+        ret_list = []
+        good = []
+        for m, n in matches:
+            if m.distance < 0.75 * n.distance:
+                good.append([m])
+
+        good.sort(key=lambda x: x[0].distance)
+
+        if debug:
+            # cv2.drawMatchesKnn expects list of lists as matches.
+            img3 = cv2.drawMatchesKnn(sub_image, kp1, main_image, kp2, good, flags=2, outImg=None,
+                                      matchColor=(255, 255, 0))
+            plt.imshow(img3), plt.show()
+
+        ret_list = []
+        for match in good:
+            index = match[0].trainIdx
+            point = kp2[index].pt
+            ret_list.append((int(point[0]), int(point[1])))
+
+        logging.debug("After filtering {}".format(len(good)))
+        return ret_list
+
+    def validate_clustering(self, sub_image, main_image, points, target_matches =10, minimal_match_percent=0.8, debug=False):
+        """
+        This function takes in the main target picture (template) and the main image. The goal is to validate and return
+        probable best location to press if there is probable the sub_image actually is present
+
+        Args:
+            minimal_matches: A minimal number of matches needed regardless of percentages
+            match_percent: The needed percentage for a good match
+            sub_image: The target image
+            main_image: Where we are looking for the target
+            points: A list of points returned from the find_features_in_array_SIFT()
+            debug: Display the clustering found
+
+        Returns:
+            A touple with the most probably (x,y) coord or None if no likely match found
+
+        """
+
+        if len(points) == 0:
+            return False
+
+        length = len(points)
+        sum_points = list(map(sum, zip(*points)))
+        centre = int(sum_points[0] / length), int(sum_points[1] / length)
+
+        box_size = sub_image.shape[0:2]
+
+        left = centre[0] - box_size[0] / 2
+        right = centre[0] + box_size[0] / 2
+
+        top = centre[1] - box_size[1] / 2
+        bottom = centre[1] + box_size[1] / 2
+
+        out_img = main_image
+        # TODO: Optimize with numpy-vectorization
+        box = (left, top, right, bottom)
+
+        if debug:
+            out_img = cv2.circle(out_img, centre, 5, (255, 0, 127), -1)
+            out_img = cv2.rectangle(out_img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255, 0, 255), 2)
+
+        matches = 0
+        percentages = 0.0
+
+        for point in points:
+            vert_match = left <= point[0] <= right
+            horiz_match = top <= point[1] <= bottom
+
+            if vert_match and horiz_match:
+                matches = matches + 1
+                if debug:
+                    out_img = cv2.circle(main_image, point, 5, (0, 255 , 255), -1)
+            else:
+                if debug:
+                    out_img = cv2.circle(main_image, point, 5, (0, 255, 0), -1)
+
+            percentages = matches/len(points)
+
+        logging.debug("Had {} points in rect ({})".format(matches, percentages))
+
+        if debug:
+            plt.imshow(out_img)
+            plt.show()
+
+        if percentages <= minimal_match_percent or matches <= target_matches:
+            logging.debug("Too small percentages or matches to pass")
+            return None
+
+        logging.debug("All cluster tests passed. Returning center {}".format(centre))
+
+        return centre
 
     @staticmethod
     def aproximate_color_2d(target, found, shade):

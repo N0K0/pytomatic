@@ -7,7 +7,7 @@ import logging
 import sys
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
+#logging.basicConfig(stream='mouse.log', level=logging.DEBUG, format=FORMAT)
 
 #https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
 class MouseMovement:
@@ -205,6 +205,9 @@ class MouseMovement:
         logging.debug("To Pixel: {} -> {} in the box {}".format(coords,(x,y),bbox))
 
         return int(x), int(y)
+
+    def click_centre(self,bbox,button="left"):
+        return self.click()
 
     def __init__(self, window_handler):
         self._last_x = 0

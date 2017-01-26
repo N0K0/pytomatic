@@ -10,7 +10,7 @@ import sys
 
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
+#logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 
 class WinHandler:
