@@ -291,7 +291,7 @@ class PixelSearch:
         logging.debug("After filtering {}".format(len(good)))
         return ret_list
 
-    def validate_clustering(self, sub_image, main_image, points, target_matches =10, minimal_match_percent=0.8, debug=False):
+    def validate_clustering(self, sub_image, main_image, points, clusters = 3,target_matches =10, minimal_match_percent=0.8, debug=False):
         """
         This function takes in the main target picture (template) and the main image. The goal is to validate and return
         probable best location to press if there is probable the sub_image actually is present
@@ -305,6 +305,8 @@ class PixelSearch:
             debug: Display the clustering found
 
         Returns:
+            Returns a list of touples based on the following format:
+                ((x,y),number of matches, percentages)
             A touple with the most probably (x,y) coord or None if no likely match found
 
         """
@@ -312,56 +314,79 @@ class PixelSearch:
         if len(points) == 0:
             return False
 
-        length = len(points)
-        sum_points = list(map(sum, zip(*points)))
-        centre = int(sum_points[0] / length), int(sum_points[1] / length)
+        points = numpy.asarray(points,dtype=np.float32)
+        points = numpy.float32(points)
+
+        #TODO: Optimizw this part
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+        ret, label, centers = cv2.kmeans(points, 2, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+
+        A = points[label.ravel() == 0]
+        B = points[label.ravel() == 1]
+
+        # Plot the data
+        if debug:
+            plt.imshow(main_image)
+            plt.scatter(A[:, 0], A[:, 1])
+            plt.scatter(B[:, 0], B[:, 1], c='r')
+            plt.scatter(centers[:, 0], centers[:, 1], s=80, c='y', marker='s')
+            plt.xlabel('Height'), plt.ylabel('Weight')
+            plt.show()
 
         box_size = sub_image.shape[0:2]
 
-        left = centre[0] - box_size[0] / 2
-        right = centre[0] + box_size[0] / 2
+        center_stats = []
 
-        top = centre[1] - box_size[1] / 2
-        bottom = centre[1] + box_size[1] / 2
+        for center in centers:
+            center = center.astype(np.int32).tolist()
+            center = tuple(center)
 
-        out_img = main_image
-        # TODO: Optimize with numpy-vectorization
-        box = (left, top, right, bottom)
+            left = int(center[0] - box_size[0] / 2)
+            right = int(center[0] + box_size[0] / 2)
 
-        if debug:
-            out_img = cv2.circle(out_img, centre, 5, (255, 0, 127), -1)
-            out_img = cv2.rectangle(out_img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255, 0, 255), 2)
+            top = int(center[1] - box_size[1] / 2)
+            bottom = int(center[1] + box_size[1] / 2)
 
-        matches = 0
-        percentages = 0.0
+            out_img = main_image[:]
+            # TODO: Optimize with numpy-vectorization
+            box = (left, top, right, bottom)
 
-        for point in points:
-            vert_match = left <= point[0] <= right
-            horiz_match = top <= point[1] <= bottom
+            cv2.rectangle(out_img,(left,top),(right,bottom),(255,0,255),5)
 
-            if vert_match and horiz_match:
-                matches = matches + 1
-                if debug:
-                    out_img = cv2.circle(main_image, point, 5, (0, 255 , 255), -1)
-            else:
-                if debug:
-                    out_img = cv2.circle(main_image, point, 5, (0, 255, 0), -1)
+            matches = 0
+            percentages = 0.0
 
-            percentages = matches/len(points)
+            for point in points:
+                point = point.astype(np.int32).tolist()
+                point = tuple(point)
 
-        logging.debug("Had {} points in rect ({})".format(matches, percentages))
+                vert_match = left <= point[0] <= right
+                horiz_match = top <= point[1] <= bottom
 
-        if debug:
-            plt.imshow(out_img)
-            plt.show()
+                if vert_match and horiz_match:
+                    matches = matches + 1
+                    if debug:
+                        out_img = cv2.circle(out_img, point,  5, color = (0, 255, 0), thickness = -1)
+                else:
+                    if debug:
+                        out_img = cv2.circle(out_img, point,  5, color = (255, 255, 0), thickness = -1)
 
-        if percentages <= minimal_match_percent or matches <= target_matches:
-            logging.debug("Too small percentages or matches to pass")
-            return None
+                percentages = matches/len(points)
 
-        logging.debug("All cluster tests passed. Returning center {}".format(centre))
+            logging.debug("Had {} points in rect ({})".format(matches, percentages))
 
-        return centre
+            if debug:
+                plt.imshow(out_img)
+                plt.show()
+
+            if percentages <= minimal_match_percent or matches <= target_matches:
+                logging.debug("Too small percentages or matches to pass")
+                continue
+
+
+            logging.debug("All cluster tests passed. Adding center {}".format(center))
+            center_stats.append((center,target_matches,percentages))
+        return center_stats
 
     @staticmethod
     def aproximate_color_2d(target, found, shade):

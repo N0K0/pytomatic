@@ -19,43 +19,34 @@ class PvZHandler():
         sleep(1)
 
     def press_button(self,file_name):
-        button = cv2.imread(file_name)
-        window = self.px.grab_window()
-        window = self.px.img_to_numpy(window)
-        area = self.px.find_subimage_in_array(button, window,debug=True)
-        area = area[0]
-        self.mm.click((area[0] + 20, area[1] + 20))
+        centre = self.check_exist(file_name)
+        if centre is None:
+            return None
+
+
+        # TODO: Update this click
+        self.mm.click(centre)
         sleep(5)
+        return centre
 
     def check_exist(self,file_name):
-        target = cv2.imread(file_name,0)
+        target = cv2.imread(file_name,1)
         window = self.px.grab_window()
         window = self.px.img_to_numpy(window)
         targets = self.px.find_features_in_array_SIFT(target,window,debug=True)
 
         centre = self.px.validate_clustering(target,window,targets,debug=True)
 
-        sys.exit(1)
-
-        if len(targets) > 0:
-            return True
-        else:
-            return False
-
-
+        return centre
 
     def watch_ad(self):
-        if not self.ad_ready():
+        ad_free = self.press_button('assets/ad_ready.PNG')
+        if  ad_free is None:
             return False
 
-        self.press_button('assets/ad_ready.PNG')
-
-        if self.ad_avaliable() and not self.ad_not_avaliable():
-            self.press_button('assets/ad_watch.PNG')
-        elif not self.ad_avaliable() and self.ad_not_avaliable():
-            self.press_button('assets/ad_close_menu.PNG')
-        else:
-            raise ValueError("Unable to find the button")
+        ad_watch = self.press_button('assets/ad_watch.PNG')
+        if ad_watch is None:
+            return None
 
     def ad_ready(self):
         return self.check_exist('assets/ad_ready.PNG')
