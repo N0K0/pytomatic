@@ -23,6 +23,7 @@ class PvZHandler():
         if centre is None:
             return None
 
+        centre = centre[0]
 
         # TODO: Update this click
         self.mm.click(centre)
@@ -35,13 +36,14 @@ class PvZHandler():
         window = self.px.img_to_numpy(window)
         targets = self.px.find_features_in_array_SIFT(target,window,debug=True)
 
-        centre = self.px.validate_clustering(target,window,targets,debug=True)
-
-        return centre
+        centres = self.px.validate_clustering(target,window,targets,debug=True)
+        if len(centres) > 0:
+            return centres[0]
+        return None
 
     def watch_ad(self):
         ad_free = self.press_button('assets/ad_ready.PNG')
-        if  ad_free is None:
+        if ad_free is None:
             return False
 
         ad_watch = self.press_button('assets/ad_watch.PNG')

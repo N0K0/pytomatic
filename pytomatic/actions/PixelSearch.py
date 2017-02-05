@@ -163,6 +163,7 @@ class PixelSearch:
 
         array = np.asarray(image, dtype="uint8")
 
+
         return array
 
     def find_pixel_in_array(self, numpy_array, color, shades=0):
@@ -312,17 +313,19 @@ class PixelSearch:
         """
 
         if len(points) == 0:
-            return False
+            return None
 
         points = numpy.asarray(points,dtype=np.float32)
         points = numpy.float32(points)
 
-        #TODO: Optimizw this part
+        #TODO: Figure out if its possible to match more objects somehow
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
         ret, label, centers = cv2.kmeans(points, 2, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
 
+        # TODO: Fix the Deprecation error here
         A = points[label.ravel() == 0]
         B = points[label.ravel() == 1]
+
 
         # Plot the data
         if debug:
@@ -333,7 +336,8 @@ class PixelSearch:
             plt.xlabel('Height'), plt.ylabel('Weight')
             plt.show()
 
-        box_size = sub_image.shape[0:2]
+        box_size = sub_image.shape[0:2] #NOTE: X/Y is swapped in numpy
+
 
         center_stats = []
 
@@ -341,11 +345,11 @@ class PixelSearch:
             center = center.astype(np.int32).tolist()
             center = tuple(center)
 
-            left = int(center[0] - box_size[0] / 2)
-            right = int(center[0] + box_size[0] / 2)
+            left = int(center[0] - box_size[1] / 2)
+            right = int(center[0] + box_size[1] / 2)
 
-            top = int(center[1] - box_size[1] / 2)
-            bottom = int(center[1] + box_size[1] / 2)
+            top = int(center[1] - box_size[0] / 2)
+            bottom = int(center[1] + box_size[0] / 2)
 
             out_img = main_image[:]
             # TODO: Optimize with numpy-vectorization
@@ -386,6 +390,9 @@ class PixelSearch:
 
             logging.debug("All cluster tests passed. Adding center {}".format(center))
             center_stats.append((center,target_matches,percentages))
+
+        center_stats.sort(reverse=True, key=operator.itemgetter(2))
+
         return center_stats
 
     @staticmethod
