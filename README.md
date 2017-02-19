@@ -10,9 +10,7 @@ Like for example BF4 commander mode (Which is how this all started)
 * Basic Mouse control
 * Basic imaging
 
-
 ## Coming soon™
-
 
 * Computer vision
     * A working basic HAAR-based object detector
@@ -22,6 +20,10 @@ Like for example BF4 commander mode (Which is how this all started)
 * Mouse movement
     * Mouse movement recorder
     * Move movement primitives like curves
+* Keyboard
+    * Recording of keys and timing
+    * Playback of recorded keyinputs
+    * Send keys based on strings
 * Hacking stuff
     * Memory scanning and editing
         * Address chaining
