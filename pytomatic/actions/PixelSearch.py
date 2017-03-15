@@ -392,7 +392,7 @@ class PixelSearch:
             center_stats.append((center,target_matches,percentages))
 
         center_stats.sort(reverse=True, key=operator.itemgetter(2))
-
+        logging.debug("Found {} centres".format(len(center_stats)))
         return center_stats
 
     @staticmethod

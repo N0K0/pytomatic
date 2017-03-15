@@ -27,10 +27,11 @@ class MouseMovement:
             SyntaxError: The button param does not contain "left","right og "middle"
         """
 
+        hwnd = self.win_handler.get_hwnd()
+
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
 
-        hwnd = self.win_handler.get_hwnd()
 
         logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
 
@@ -200,7 +201,7 @@ class MouseMovement:
             size_vertical = bbox[2] - bbox[0]
             size_horizontal = bbox[3] - bbox[1]
 
-        x, y = coords[0] * size_horizontal, coords[1] * size_vertical
+        x, y = coords[0] * size_vertical, coords[1] * size_horizontal
 
         logging.debug("To Pixel: {} -> {} in the box {}".format(coords,(x,y),bbox))
 
