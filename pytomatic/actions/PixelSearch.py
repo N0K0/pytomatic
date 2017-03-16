@@ -7,7 +7,7 @@ import numpy
 import numpy as np
 from PIL import ImageGrab
 from PIL import Image
-from pytomatic.actions.Helpers import Helpers
+from pytomatic.actions import Helpers
 from ctypes import windll, c_int, c_uint, c_char_p, create_string_buffer
 from struct import calcsize, pack
 import win32con
@@ -315,24 +315,29 @@ class PixelSearch:
         if len(points) == 0:
             return None
 
+        if len(points ) < clusters:
+            logging.debug("Fewer points than clusters found, aborting")
+            # Maybe just try clustering with fewer clusters?
+            return None
+
         points = numpy.asarray(points,dtype=np.float32)
         points = numpy.float32(points)
 
-        #TODO: Figure out if its possible to match more objects somehow
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-        ret, label, centers = cv2.kmeans(points, 2, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+        ret, label, centers = cv2.kmeans(points, clusters, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
 
         # TODO: Fix the Deprecation error here
-        A = points[label.ravel() == 0]
-        B = points[label.ravel() == 1]
 
+        point_clusters = []
+        for cluster in range(clusters+1):
+            point_clusters.append(points[label.ravel() == cluster])
 
         # Plot the data
         if debug:
             plt.imshow(main_image)
-            plt.scatter(A[:, 0], A[:, 1])
-            plt.scatter(B[:, 0], B[:, 1], c='r')
-            plt.scatter(centers[:, 0], centers[:, 1], s=80, c='y', marker='s')
+            for cluster_points in point_clusters:
+                plt.scatter(cluster_points[:, 0], cluster_points[:, 1])
+                plt.scatter(centers[:, 0], centers[:, 1], s=80, c='y', marker='s')
             plt.xlabel('Height'), plt.ylabel('Weight')
             plt.show()
 
