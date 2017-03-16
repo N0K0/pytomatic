@@ -7,7 +7,7 @@ def search_for_pixels():
     wh.init_window()
     px = PixelSearch.PixelSearch(wh)
     mx = px.pixel_search(0xFFFFFF,shades=50)
-    Helpers.Helpers.show_matrix(mx)
+    Helpers.show_matrix(mx)
 
 
 def multi_screen():
@@ -16,7 +16,7 @@ def multi_screen():
     px = PixelSearch.PixelSearch(win_handler=wh)
 
     mat = px.pixel_search(0xA87161,12)
-    Helpers.Helpers.show_matrix(mat)
+    Helpers.show_matrix(mat)
 
 
 multi_screen()

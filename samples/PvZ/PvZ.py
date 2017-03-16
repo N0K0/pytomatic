@@ -5,12 +5,13 @@ import cv2
 from time import sleep
 import logging
 import sys
+from pytomatic.actions.Helpers import waiting_bar
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
-class PvZHandler():
 
+class PvZHandler():
     def __init__(self):
         self.wh = WinHandler(title='Nox',class_name='Qt5QWindowIcon')
         self.px = PixelSearch(self.wh)
@@ -36,42 +37,37 @@ class PvZHandler():
         window = self.px.img_to_numpy(window)
         targets = self.px.find_features_in_array_SIFT(target,window,debug=False)
 
-        centres = self.px.validate_clustering(target,window,targets,debug=True)
-        if centres is not None:
+        centres = self.px.validate_clustering(target,window,targets,debug=False,clusters=4)
+        if centres is not None and len(centres) > 0:
             return centres[0]
         return None
 
     def watch_ad(self):
-
         # Pressing the buttons for free gems
         ad_free = self.press_button('assets/ad_ready.PNG')
         if ad_free is None:
             return False
 
-        #Watch ad button
-        ad_watch = self.press_button('assets/ad_watch.PNG')
-        if ad_watch is None:
-            return None
+        while True:
 
-        # TODO: Check if there is no ad
+            #Watch ad button
+            if self.press_button('assets/ad_watch.PNG') is None:
+                return None
 
+            # No ad left button
+            if self.press_button('assets/ad_not_available.PNG'):
+                return None
 
-        # Ad is being watched and we need to click the X at some point
-        print("Sleeping 45")
-        sleep(15)
-        print("Sleeping 30")
-        sleep(15)
-        print("Sleeping 15")
-        sleep(15)
-        print("Sleeping 00")
+            # Ad is being watched and we need to click the X at some point
+            waiting_bar(40)
 
-        click_close = self.press_button('assets/ad_done_1.PNG')
-        if click_close is None:
-            click_close = self.press_button('assets/ad_done_2.PNG')
+            click_close = self.press_button('assets/ad_done_1.PNG')
+            if click_close is None:
+                click_close = self.press_button('assets/ad_done_2.PNG')
 
-        if click_close is None:
-            self.mm.click((0.97,0.06))
-            return None
+            if click_close is None:
+                self.mm.click((0.97,0.06))
+                sleep(5)
 
     def ad_ready(self):
         return self.check_exist('assets/ad_ready.PNG')
