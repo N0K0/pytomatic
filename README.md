@@ -30,3 +30,14 @@ Like for example BF4 commander mode (Which is how this all started)
     * Data structure analysis
     * Windows API hooking
         * Direct-X
+        
+## How to install
+
+You need **python 3.6**
+
+And the packages in the **requriement.txt** files.
+
+On top of that you need openCV for python. 
+
+Precompiled files can be found here: [http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#opencv](http://www.lfd.uci.edu/%7Egohlke/pythonlibs/#opencv)
+
