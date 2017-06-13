@@ -1,0 +1,6 @@
+numpy
+opencv-python
+Pillow
+pypiwin32
+matplotlib
+PyQt5
