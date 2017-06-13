@@ -60,3 +60,19 @@ char *shellcode = 	"\x55"                                  // push        rbp
 	"\x58"                                  // pop         rax
 ;
 ```
+
+
+### Sample Collector
+
+A tool mean to speed up the process of collecting and annotating images by allowing you to do it live via its interface.
+
+Will support the following:
+
+* Live imagestream
+* Freeze picture
+* Click action passthrough
+    * Maybe drag mode too?
+* Quick and easy Annotation with click and drag mode
+    * Both single annotation mode and multi-annotate
+
+
