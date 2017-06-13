@@ -114,8 +114,6 @@ class WorkerThread(QThread):
             px = QPixmap.fromImage(imgqt)
             self.main_wnd.label.setPixmap(px)
 
-
-
 class Annotator():
 
     def annotator(self,image,name_base):
