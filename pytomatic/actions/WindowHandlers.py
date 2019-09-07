@@ -2,19 +2,19 @@ import win32gui
 import win32ui
 from ctypes import windll
 
-
 import win32api
 import win32con
 import logging
 import sys
 
-
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
-#logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
+
+
+# logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format=FORMAT)
 
 
 class WinHandler:
-    def get_hwnd_by_title_class(self, class_text = None, title_text= None, parent_title = None,parent_class = None):
+    def get_hwnd_by_title_class(self, class_text=None, title_text=None, parent_title=None, parent_class=None):
 
         """ Returns a windows window_handler
 
@@ -31,7 +31,7 @@ class WinHandler:
         """
 
         if 'desktop:' in title_text.lower():
-            _ , num = title_text.lower().split(':',1)
+            _, num = title_text.lower().split(':', 1)
             num = int(num)
             monitors = win32api.EnumDisplayMonitors()
             tar_mon = monitors[num]
@@ -43,20 +43,21 @@ class WinHandler:
             return self.hwnd
 
         child_hwnd = []
-        def child_enumerator(hwnd,param):
+
+        def child_enumerator(hwnd, param):
             child_hwnd.append(hwnd)
             return True
 
         if parent_title is not None or parent_class is not None:
             logging.debug("Where supplied title/class: {0}/{1}".format(str(title_text), str(class_text)))
-            parent_hwnd = self.get_hwnd_by_title_class(class_text=parent_class,title_text=parent_title)
-            win32gui.EnumChildWindows(parent_hwnd,child_enumerator,None)
+            parent_hwnd = self.get_hwnd_by_title_class(class_text=parent_class, title_text=parent_title)
+            win32gui.EnumChildWindows(parent_hwnd, child_enumerator, None)
 
             for hwnd in child_hwnd:
                 hwnd_title = win32gui.GetWindowText(hwnd)
                 hwnd_class = win32gui.GetClassName(hwnd)
                 if (hwnd_title == title_text and title_text is not None) or \
-                    (hwnd_class == class_text and class_text is not None):
+                        (hwnd_class == class_text and class_text is not None):
                     self.hwnd = hwnd
                     return hwnd
 
@@ -65,7 +66,6 @@ class WinHandler:
         else:
             logging.debug("Where supplied title/class: {0}/{1}".format(str(title_text), str(class_text)))
             self.hwnd = win32gui.FindWindow(class_text, title_text)
-
 
         if self.hwnd == 0:
             raise ValueError('Unable to find a window with that title or class')
@@ -97,7 +97,7 @@ class WinHandler:
         self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
         return self.pycwnd
 
-    def init_window(self, hwnd=None, pos=None, borderless=False, config = None):
+    def init_window(self, hwnd=None, pos=None, borderless=False, config=None):
         """
         At the moment only sets the window in the foreground and moves it to a posistion set in the config.
 
@@ -140,7 +140,7 @@ class WinHandler:
             win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
         if len(pos) == 2:
             win_size = self.get_bbox_size()
-            win32gui.MoveWindow(hwnd,pos[0],pos[1],win_size[0],win_size[1], 1)
+            win32gui.MoveWindow(hwnd, pos[0], pos[1], win_size[0], win_size[1], 1)
 
     def hide_extra_ui(self, hwnd=None, remove=True):
         """
@@ -169,7 +169,7 @@ class WinHandler:
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, style)
         win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
 
-    def create_boundingbox(self, hwnd = None, windows_style=False):
+    def create_boundingbox(self, hwnd=None, windows_style=False):
         """
         Creates a bounding box of the window.
 
@@ -207,7 +207,7 @@ class WinHandler:
         bounding_box = map(int, bounding_box)
         return bounding_box
 
-    def get_bbox(self,hwnd=None):
+    def get_bbox(self, hwnd=None):
         """
         Creates a tuple with four elements. The upper right coordinates
                 and the lower left coordinates.
@@ -223,13 +223,12 @@ class WinHandler:
         :return: a tuple, with the (width, height) data
         """
 
-
         bbox = self.get_bbox()
         bbox_size = bbox[2] - bbox[0], bbox[3] - bbox[1]
         logging.debug('Found following size: %d, %d' % (bbox[2] - bbox[0], bbox[3] - bbox[1]))
         return bbox_size
 
-    def bbox_scale(self,bbox, scale):
+    def bbox_scale(self, bbox, scale):
         """
         Args:
             bbox: A bounding box to scale
@@ -239,22 +238,22 @@ class WinHandler:
             A new boundingbox with the new scale
         """
 
-        def percent_in_range(start,stop,scale):
+        def percent_in_range(start, stop, scale):
             return ((stop - start) * scale) + start
 
-        centre = bbox[0] + (bbox[2] - bbox[0]) / 2 ,bbox[1]+ (bbox[3]-bbox[1]) / 2
+        centre = bbox[0] + (bbox[2] - bbox[0]) / 2, bbox[1] + (bbox[3] - bbox[1]) / 2
 
-        left    = int(percent_in_range(centre[0],bbox[0],scale))
-        right   = int(percent_in_range(centre[0],bbox[2],scale))
-        top     = int(percent_in_range(centre[1],bbox[1],scale))
-        bottom  = int(percent_in_range(centre[1],bbox[3],scale))
-        scaled_box = (left,top,right,bottom)
+        left = int(percent_in_range(centre[0], bbox[0], scale))
+        right = int(percent_in_range(centre[0], bbox[2], scale))
+        top = int(percent_in_range(centre[1], bbox[1], scale))
+        bottom = int(percent_in_range(centre[1], bbox[3], scale))
+        scaled_box = (left, top, right, bottom)
 
-        logging.debug("Scaled bbox: {} ({}%) -> {}".format(bbox,scale*100,scaled_box))
+        logging.debug("Scaled bbox: {} ({}%) -> {}".format(bbox, scale * 100, scaled_box))
 
         return scaled_box
 
-    def __init__(self, title = None,class_name = None,config=None):
+    def __init__(self, title=None, class_name=None, config=None):
         self.hwnd = None
         self.pycwnd = None
         self.bbox = None
@@ -278,7 +277,7 @@ class WinHandler:
     def get_title(self):
         return self.title
 
-    def set_hwnd(self,hwnd):
+    def set_hwnd(self, hwnd):
         self.hwnd = hwnd
         self.pycwnd = self.make_pyc_wnd(hwnd)
 
@@ -288,12 +287,10 @@ class WinHandler:
         width = windll.user32.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
         height = windll.user32.GetSystemMetrics(win32con.SM_CYVIRTUALSCREEN)
 
-        logging.debug("Desktop stats: Origo: {}\tSize: {}".format((left,top),(width,height)))
-        return left,top,width,height
+        logging.debug("Desktop stats: Origo: {}\tSize: {}".format((left, top), (width, height)))
+        return left, top, width, height
 
-
-
-    def translate_virt_to_real(self,pos):
+    def translate_virt_to_real(self, pos):
         """
         This function takes a boundingbox found in the virutal space (IE where negative coordinates are possible
             and origo is on the primary screen) and outputs them as absolute coordinates where origo is top-left og all
@@ -307,15 +304,15 @@ class WinHandler:
 
         left, top, _, _ = self.get_desktop_stats()
 
-        translated = (pos[0]-left,pos[1]-top,pos[2]-left,pos[3]-left)
-        logging.debug("Virt to real: {} -> {}".format(pos,translated))
+        translated = (pos[0] - left, pos[1] - top, pos[2] - left, pos[3] - left)
+        logging.debug("Virt to real: {} -> {}".format(pos, translated))
 
         return translated
 
-    def set_target(self,title_name=None,class_name=None,parent_title=None,parent_class=None):
+    def set_target(self, title_name=None, class_name=None, parent_title=None, parent_class=None):
         logging.debug('Setting target:\n\tTitle: {1}\n\tClass: {0}\n\tParent title:{2}\n\tParent class: {3}\n'
-                      .format(class_name,title_name,parent_title,parent_class))
-        self.hwnd = self.get_hwnd_by_title_class(class_name,title_name,parent_title,parent_class)
+                      .format(class_name, title_name, parent_title, parent_class))
+        self.hwnd = self.get_hwnd_by_title_class(class_name, title_name, parent_title, parent_class)
         self.pycwnd = self.make_pyc_wnd(self.hwnd)
         self.title = title_name
         self.class_name = class_name

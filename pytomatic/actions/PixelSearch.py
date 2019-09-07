@@ -15,6 +15,7 @@ import cv2
 from matplotlib import pyplot as plt
 from operator import itemgetter
 from cv2.xfeatures2d import SIFT_create
+import cv2
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 
@@ -33,8 +34,29 @@ def extract_color_band(value, band):
 
 
 class PixelSearch:
+    class MouseEvent:
+        def __init__(self):
+            self.pos_start = ()
+            self.pos_stop = ()
+            self.state = None
+            self.pos_box = None
+
+        def __str__(self):
+            string = f"""
+            Start: {self.pos_start}
+            Stop:  {self.pos_stop}
+            State: {self.state}
+            """.strip()
+
+            out = ""
+            for line in string.splitlines():
+                out += line.strip() + "\n"
+
+            return out
+
     def __init__(self, win_handler):
         self.wh = win_handler
+        self.mouseEvent = self.MouseEvent()
 
     def pixel_search(self, color, shades=0, bbox=None, debug=None):
         logging.debug("Searching for the pixels with color {} and shade {} ".format(str(color), str(shades)))
@@ -47,7 +69,7 @@ class PixelSearch:
 
         hits = self.find_pixel_in_array(px_data, color, shades)
 
-        logging.debug("Found {} valid posistions".format(np.count_nonzero(hits)))
+        logging.debug("Found {} valid positions".format(np.count_nonzero(hits)))
 
         return hits
 
@@ -162,7 +184,6 @@ class PixelSearch:
         """
 
         array = np.asarray(image, dtype="uint8")
-
 
         return array
 
@@ -292,7 +313,8 @@ class PixelSearch:
         logging.debug("After filtering {}".format(len(good)))
         return ret_list
 
-    def validate_clustering(self, sub_image, main_image, points, clusters = 3,target_matches =10, minimal_match_percent=0.8, debug=False):
+    def validate_clustering(self, sub_image, main_image, points, clusters=3, target_matches=10,
+                            minimal_match_percent=0.8, debug=False):
         """
         This function takes in the main target picture (template) and the main image. The goal is to validate and return
         probable best location to press if there is probable the sub_image actually is present
@@ -315,12 +337,12 @@ class PixelSearch:
         if len(points) == 0:
             return None
 
-        if len(points ) < clusters:
+        if len(points) < clusters:
             logging.debug("Fewer points than clusters found, aborting")
             # Maybe just try clustering with fewer clusters?
             return None
 
-        points = numpy.asarray(points,dtype=np.float32)
+        points = numpy.asarray(points, dtype=np.float32)
         points = numpy.float32(points)
 
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
@@ -329,7 +351,7 @@ class PixelSearch:
         # TODO: Fix the Deprecation error here
 
         point_clusters = []
-        for cluster in range(clusters+1):
+        for cluster in range(clusters + 1):
             point_clusters.append(points[label.ravel() == cluster])
 
         # Plot the data
@@ -341,8 +363,7 @@ class PixelSearch:
             plt.xlabel('Height'), plt.ylabel('Weight')
             plt.show()
 
-        box_size = sub_image.shape[0:2] #NOTE: X/Y is swapped in numpy
-
+        box_size = sub_image.shape[0:2]  # NOTE: X/Y is swapped in numpy
 
         center_stats = []
 
@@ -360,7 +381,7 @@ class PixelSearch:
             # TODO: Optimize with numpy-vectorization
             box = (left, top, right, bottom)
 
-            cv2.rectangle(out_img,(left,top),(right,bottom),(255,0,255),5)
+            cv2.rectangle(out_img, (left, top), (right, bottom), (255, 0, 255), 5)
 
             matches = 0
             percentages = 0.0
@@ -375,12 +396,12 @@ class PixelSearch:
                 if vert_match and horiz_match:
                     matches = matches + 1
                     if debug:
-                        out_img = cv2.circle(out_img, point,  5, color = (0, 255, 0), thickness = -1)
+                        out_img = cv2.circle(out_img, point, 5, color=(0, 255, 0), thickness=-1)
                 else:
                     if debug:
-                        out_img = cv2.circle(out_img, point,  5, color = (255, 255, 0), thickness = -1)
+                        out_img = cv2.circle(out_img, point, 5, color=(255, 255, 0), thickness=-1)
 
-                percentages = matches/len(points)
+                percentages = matches / len(points)
 
             logging.debug("Had {} points in rect ({})".format(matches, percentages))
 
@@ -392,13 +413,74 @@ class PixelSearch:
                 logging.debug("Too small percentages or matches to pass")
                 continue
 
-
             logging.debug("All cluster tests passed. Adding center {}".format(center))
-            center_stats.append((center,target_matches,percentages))
+            center_stats.append((center, target_matches, percentages))
 
         center_stats.sort(reverse=True, key=operator.itemgetter(2))
         logging.debug("Found {} centres".format(len(center_stats)))
         return center_stats
+
+    # TODO: Click and drag version of this function
+    def print_win_percentage_click(self, buttonEvent, x, y, scrollDelta, bbox):
+        """
+        This method is meant to work with the setMouseCallback funciton
+        The button events can be found here:
+        https://docs.opencv.org/3.1.0/d7/dfc/group__highgui.html#ga927593befdddc7e7013602bca9b079b0
+
+        :param buttonEvent: What sort of mouseEvent has triggered. Check the link for enums
+        :param x: X coord relative to the content of the show window
+        :param y: Y coord relative to the content of the show window
+        :param scrollDelta: Some jankyass delta that tells about the how much you have scrolled
+        :param bbox: The bounding box of the window we want to do math on
+        :return: a tuple with the percentage of the image clicked
+        """
+
+        # Getting the size of the window
+        h = bbox[3] - bbox[1]
+        w = bbox[2] - bbox[0]
+
+        # TODO: Use some sort of pass by reference instead
+        if buttonEvent == cv2.EVENT_LBUTTONDOWN:
+            self.mouseEvent.pos_start = (x, y)
+            self.mouseEvent.state = cv2.EVENT_LBUTTONDOWN
+            self.mouseEvent.pos_stop = None
+            self.mouseEvent.pos_box = None
+        elif buttonEvent == cv2.EVENT_LBUTTONUP:
+            self.mouseEvent.pos_stop = (x, y)
+            self.mouseEvent.state = None
+            self.mouseEvent.pos_box = (*self.mouseEvent.pos_start, *self.mouseEvent.pos_stop)
+            print(self.coord_to_percent(bbox, self.mouseEvent.pos_start),
+                  self.coord_to_percent(bbox, self.mouseEvent.pos_stop))
+
+    @staticmethod
+    def coord_to_percent(bbox, coord):
+        h = bbox[3] - bbox[1]
+        w = bbox[2] - bbox[0]
+        return coord[0] / float(w), coord[1] / float(h)
+
+    @staticmethod
+    def percent_to_coord(bbox, percent_coord):
+        h = bbox[3] - bbox[1]
+        w = bbox[2] - bbox[0]
+        return w * percent_coord[0], h * percent_coord[1]
+
+    @staticmethod
+    def coord_to_percent_box(bbox, coord):
+        h = bbox[3] - bbox[1]
+        w = bbox[2] - bbox[0]
+        return coord[0] / float(w), \
+               coord[1] / float(h), \
+               coord[2] / float(w), \
+               coord[3] / float(h)
+
+    @staticmethod
+    def percent_to_coord_box(bbox, percent_coord):
+        h = bbox[3] - bbox[1]
+        w = bbox[2] - bbox[0]
+        return int(w * percent_coord[0]), \
+               int(h * percent_coord[1]), \
+               int(w * percent_coord[2]), \
+               int(h * percent_coord[3])
 
     @staticmethod
     def aproximate_color_2d(target, found, shade):
@@ -408,7 +490,6 @@ class PixelSearch:
 
         if red and green and blue:
             return 1
-
         return 0
 
     @staticmethod
@@ -419,3 +500,8 @@ class PixelSearch:
 
         numpy_array = abs(array[:, :, :] - (r, g, b)) <= shade
         return numpy_array
+
+    @staticmethod
+    def box_size(bbox):
+        w, h = bbox[2] - bbox[0], bbox[1] - bbox[3]
+        return w, h
