@@ -4,3 +4,4 @@ Pillow
 pypiwin32
 matplotlib
 PyQt5
+opencv-contrib-python
