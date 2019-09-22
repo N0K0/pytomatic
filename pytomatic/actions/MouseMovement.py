@@ -7,11 +7,13 @@ import logging
 import sys
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
-#logging.basicConfig(stream='mouse.log', level=logging.DEBUG, format=FORMAT)
 
-#https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
+
+# logging.basicConfig(stream='mouse.log', level=logging.DEBUG, format=FORMAT)
+
+# https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
 class MouseMovement:
-    def click(self, coords, button="left",hold=False):
+    def click(self, coords, button="left", hold=False):
         """
         Args:
             coords (touple): coords takes two arguments, either both float
@@ -31,7 +33,6 @@ class MouseMovement:
 
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
-
 
         logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
 
@@ -55,20 +56,20 @@ class MouseMovement:
 
         l_param = win32api.MAKELONG(x, y)
 
-        win32api.SendMessage(hwnd, win32con.WM_MOUSEMOVE,0,l_param)
+        win32api.SendMessage(hwnd, win32con.WM_MOUSEMOVE, 0, l_param)
 
         time.sleep(0.2)
-        win32api.SendMessage(hwnd,_button_down, _button_state, l_param)
+        win32api.SendMessage(hwnd, _button_down, _button_state, l_param)
         time.sleep(0.1)
 
-        if not hold: #Do not release the button if hold is true
+        if not hold:  # Do not release the button if hold is true
             win32api.SendMessage(hwnd, _button_up, 0, l_param)
 
         self._last_x = x
         self._last_y = y
         return True
 
-    def release_button(self, coords, button = "left"):
+    def release_button(self, coords, button="left"):
 
         if "right" in button.lower():
             _button_up = win32con.WM_RBUTTONUP
@@ -86,10 +87,8 @@ class MouseMovement:
 
         l_param = win32api.MAKELONG(x, y)
 
-
         hwnd = self.win_handler.get_hwnd()
         win32api.SendMessage(hwnd, _button_up, 0, l_param)
-
 
         raise NotImplementedError
 
@@ -112,7 +111,7 @@ class MouseMovement:
 
         return self.click([self._last_x + x, self._last_y + y], button)
 
-    def move(self,coords, button=None):
+    def move(self, coords, button=None):
         if all(isinstance(elem, float) for elem in coords):
             coords = self.to_pixel(coords)
 
@@ -131,7 +130,7 @@ class MouseMovement:
         l_param = win32api.MAKELONG(coords[0], coords[1])
         win32api.PostMessage(self.win_handler.get_hwnd(), win32con.WM_MOUSEMOVE, _button_state, l_param)
 
-    def hold_and_drag(self,start,end,steps,button="left"):
+    def hold_and_drag(self, start, end, steps, button="left"):
         hwnd = self.win_handler.get_hwnd()
 
         if all(isinstance(elem, float) for elem in start):
@@ -162,18 +161,18 @@ class MouseMovement:
         l_param = win32api.MAKELONG(start[0], start[1])
 
         time.sleep(0.1)
-        win32api.SendMessage(hwnd,_button_down,_button_state,l_param)
+        win32api.SendMessage(hwnd, _button_down, _button_state, l_param)
         time.sleep(0.1)
 
         x, y = start
-        for step in range(0,steps):
+        for step in range(0, steps):
             x += step_x
             y += step_y
-            self.move((int(x),int(y)), button=button)
+            self.move((int(x), int(y)), button=button)
             time.sleep(0.01)
 
         l_param = win32api.MAKELONG(int(x), int(y))
-        win32api.SendMessage(hwnd,_button_up,0,l_param)
+        win32api.SendMessage(hwnd, _button_up, 0, l_param)
         self._last_x = x
         self._last_y = y
 
@@ -181,9 +180,9 @@ class MouseMovement:
         size_vertical, size_horizontal = self.win_handler.get_bbox_size()
 
         x, y = coords[0] / size_horizontal, coords[1] / size_vertical
-        return float(x),float(y)
+        return float(x), float(y)
 
-    def to_pixel(self, coords, bbox = None):
+    def to_pixel(self, coords, bbox=None):
         """
         Args:
             coords (touple): a pair of floating point numbers between 0.0 and 1.0
@@ -196,18 +195,18 @@ class MouseMovement:
 
         if bbox is None:
             bbox = self.win_handler.create_boundingbox()
-            size_vertical,size_horizontal = self.win_handler.get_bbox_size()
+            size_vertical, size_horizontal = self.win_handler.get_bbox_size()
         else:
             size_vertical = bbox[2] - bbox[0]
             size_horizontal = bbox[3] - bbox[1]
 
         x, y = coords[0] * size_vertical, coords[1] * size_horizontal
 
-        logging.debug("To Pixel: {} -> {} in the box {}".format(coords,(x,y),bbox))
+        logging.debug("To Pixel: {} -> {} in the box {}".format(coords, (x, y), bbox))
 
         return int(x), int(y)
 
-    def click_centre(self,bbox,button="left"):
+    def click_centre(self, bbox, button="left"):
         return self.click()
 
     def __init__(self, window_handler):

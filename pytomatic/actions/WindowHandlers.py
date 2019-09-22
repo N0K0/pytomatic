@@ -27,7 +27,6 @@ class WinHandler:
 
         Raises:
             win32.error: If the windowtitle is invalid
-
         """
 
         if 'desktop:' in title_text.lower():

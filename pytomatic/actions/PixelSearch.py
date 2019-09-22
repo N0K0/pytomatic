@@ -7,6 +7,8 @@ import numpy
 import numpy as np
 from PIL import ImageGrab
 from PIL import Image
+from numpy import single
+
 from pytomatic.actions import Helpers
 from ctypes import windll, c_int, c_uint, c_char_p, create_string_buffer
 from struct import calcsize, pack
@@ -343,7 +345,7 @@ class PixelSearch:
             return None
 
         points = numpy.asarray(points, dtype=np.float32)
-        points = numpy.float32(points)
+        points: numpy.ndarray = numpy.float32(points)
 
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
         ret, label, centers = cv2.kmeans(points, clusters, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
