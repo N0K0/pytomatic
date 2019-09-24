@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import imutils
 from PIL import Image
+from pprint import pprint
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -30,27 +31,29 @@ class Sfws:
         print(self.win_hwnd.get_bbox())
         return self.win_hwnd
 
-    def fetch_screen(self):
-        pass
-
-    def fetch_cnt_pos(self,cnt):
+    def fetch_cnt_pos(self, cnt):
         pos = []
         for c in cnt:
             m = cv2.moments(c)
             cx = cy = 0
             if m["m00"] != 0:
                 cx = int(m["m10"] / m["m00"])
-                cy = int(m["m01"] / m["m00"])
-                pos.append((cx,cy))
+                pos.append((cx, 0))
             else:
                 continue
         return pos
 
     def find_enemies(self, bbox, img):
+        """
+        :param bbox: The bounding box of the Bluestacks window
+        :param img: The image of the Bluestacks window
+        :return: A touple containing list,list. Where the first list is the percentage of ready enemies. And the secondary
+            is for the ready enemies
+        """
         _DOT_AREA = 0.0087, 0.75, 0.997, 0.8
         _ENEMY_NOT_READY = 0x00000
         _ENEMY_READY = 0xDFDFDF
-        x1, y1, x2, y2 = self.pxs.percent_to_coord_box(bbox, _DOT_AREA)
+        bbox = x1, y1, x2, y2 = self.pxs.percent_to_coord_box(bbox, _DOT_AREA)
         img_enemy = img[y1:y2, x1:x2]
         # cv2.imshow('enemy_img', img_enemy)
 
@@ -60,21 +63,52 @@ class Sfws:
         dots_not_ready = self.pxs.find_pixel_in_array(img_enemy, np.uint32(_ENEMY_NOT_READY), 3) * 255
         dots_not_ready = dots_not_ready.astype('uint8')
 
-        cnt_ready, _ = cv2.findContours(dots_ready, cv2.RETR_LIST , cv2.CHAIN_APPROX_SIMPLE)
-        cnt_not_ready, _ = cv2.findContours(dots_not_ready, cv2.RETR_LIST , cv2.CHAIN_APPROX_SIMPLE)
+        cnt_ready, _ = cv2.findContours(dots_ready, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        cnt_not_ready, _ = cv2.findContours(dots_not_ready, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         cv2.imshow("dots_ready", dots_ready)
         cv2.imshow("dots_not_ready", dots_not_ready)
 
         pos_ready = self.fetch_cnt_pos(cnt_ready)
         pos_not_ready = self.fetch_cnt_pos(cnt_not_ready)
 
-        print("pr", pos_ready)
-        print("pnr", pos_not_ready)
+        enemies = ([], [])
 
+        for p in pos_ready:
+            pos = self.pxs.coord_to_percent(bbox, p)
+            enemies[0].append(pos)
+
+        for p in pos_not_ready:
+            pos = self.pxs.coord_to_percent(bbox, p)
+            enemies[1].append(pos)
+
+        return enemies
+
+    def make_move_click(self, direction):
+        """
+        :param direction: String, left or right
+        """
+
+        _CLICK_LEFT = 0.25, 0.75
+        _CLICK_RIGHT = 0.75, 0.75
+
+        if direction == "left":
+            self.mouse.click(_CLICK_LEFT)
+        elif direction == "right":
+            self.mouse.click(_CLICK_RIGHT)
+        else:
+            raise ValueError("left or right is needed")
 
     def make_move(self, bbox, img):
-            targets = self.find_enemies(bbox, img)
-            pass
+        ready, not_ready = self.find_enemies(bbox, img)
+
+        if len(ready) > 0:
+            target = ready.pop()
+            if target[0] < 0.5:
+                self.make_move_click("left")
+            else:
+                self.make_move_click("right")
+
+        time.sleep(0.1)
 
     def start_game(self):
         print("Starting game")
