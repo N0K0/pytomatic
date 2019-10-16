@@ -210,7 +210,6 @@ class PixelSearch:
 
         if len(numpy_array.shape) == 3:  # TODO: Either use Vectorization or some inline C magic
             logging.debug('Got a expanded RGB array')
-
             ret = self.aproximate_color_3d(numpy_array, color, shades)
             ret = np.all(ret, axis=2)
             return ret

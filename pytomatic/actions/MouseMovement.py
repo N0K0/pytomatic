@@ -58,9 +58,9 @@ class MouseMovement:
 
         win32api.SendMessage(hwnd, win32con.WM_MOUSEMOVE, 0, l_param)
 
-        time.sleep(0.2)
-        win32api.SendMessage(hwnd, _button_down, _button_state, l_param)
         time.sleep(0.1)
+        win32api.SendMessage(hwnd, _button_down, _button_state, l_param)
+        time.sleep(0.05)
 
         if not hold:  # Do not release the button if hold is true
             win32api.SendMessage(hwnd, _button_up, 0, l_param)
