@@ -3,15 +3,14 @@
 #include <ScreenCapture.au3>
 #include <WinAPI.au3>
 
-HotKeySet ( "å" , "end" )
-HotKeySet ( "æ" , "pause")
+HotKeySet ( "Ã¥" , "end" )
+HotKeySet ( "Ã¦" , "pause")
 opt("MouseClickDelay",70)
 opt("WinWaitDelay",10)
 opt("MouseClickDownDelay",70)
 opt("MouseCoordMode",0)
 
 $paused = False
-
 
 ;opt("PixelCoordMode",0)
 #include <Debug.au3>
@@ -55,7 +54,6 @@ $iteration = 0
 while true
 
    $iteration = $iteration + 1
-
    $activeWindow = WinGetHandle("[ACTIVE]")
    $mPos = MouseGetPos()
    WinActivate($winHandle)
@@ -71,12 +69,10 @@ while true
 WEnd
 
 
-
 func click($p,$key)
    ;_MouseClickPlus($Window, $Button = "left", $X = "", $Y = "", $Clicks = 1)
    $p = toCoord($p)
    MouseClick($key,$p[0],$p[1],1,4)
-
 EndFunc
 
 func offsetClick($root, $offset,$key = "left")
@@ -85,8 +81,8 @@ func offsetClick($root, $offset,$key = "left")
    $p[0] = $root[0] + $offset[0]
    $p[1] = $root[1] + $offset[1]
    click($p,$key)
-
 EndFunc
+
 
 func toCoord($p)
    $winInfo = WinGetPos($winHandle)
@@ -94,6 +90,7 @@ func toCoord($p)
    $p[1] = $p[1]*$winInfo[3]
    return $p
 EndFunc
+
 
 func orderSquads()
     $delay = 200
@@ -109,8 +106,8 @@ func orderSquads()
    click($tar,"right")
    Sleep($delay)
    offsetClick($tar,$giveOffset,"left")
-
 EndFunc
+
 
 func useSpec()
    $delay = 200
@@ -120,9 +117,8 @@ func useSpec()
    Sleep($delay)
    offsetClick($pos,$specialCommands1)
    Sleep($delay)
-
-
 EndFunc
+
 
 func useUav()
    $delay = 200
@@ -132,7 +128,6 @@ func useUav()
    Sleep($delay)
    offsetClick($pos,$scanOffset)
 
-
    Sleep($delay)
 
    $pos = getRedPos()
@@ -140,16 +135,14 @@ func useUav()
    Sleep($delay)
    offsetClick($pos,$empOffset)
    Sleep($delay)
-
-
 EndFunc
+
 
 func getRedPos($maxTry = 10)
    $info = WinGetPos($winHandle)
    _DebugOut("Finding Red POS")
    $variation = 3
    $color = 0xFCAA85
-
    $p = $scanArea
 
    ;Converts to actual pixels
@@ -159,27 +152,18 @@ func getRedPos($maxTry = 10)
    $p[2] = $p[2]*$info[2]
    $p[3] = $p[3]*$info[3]
 
-
    $try = 0
    while true
-
 	  $pattern = Random(1,4,1)
-
 	  Switch $pattern
-
 		 case 1
 			Local $pos = PixelSearch($p[0],$p[1],$p[2],$p[3],$color,$variation,1,$winHandle)
-
 		 case 2
-
 			Local $pos = PixelSearch($p[2],$p[3],$p[0],$p[1],$color,$variation,1,$winHandle)
-
 		 case 3
 			Local $pos = PixelSearch($p[0],$p[3],$p[2],$p[1],$color,$variation,1,$winHandle)
-
 		 case 4
 			Local $pos = PixelSearch($p[2],$p[1],$p[0],$p[3],$color,$variation,1,$winHandle)
-
 	  EndSwitch
 
 	  if not @error then
@@ -191,7 +175,6 @@ func getRedPos($maxTry = 10)
 		 $hitmap[$hmPos][1] = $pos[1]
 		 $hmPos = Mod($hmPos + 1,$avgSet)
 		 _DebugOut("Current pos in avg: " & $hmPos)
-
 		 return $pos
 	  else
 		 $try = $try + 1
@@ -199,7 +182,6 @@ func getRedPos($maxTry = 10)
 		 Sleep(1)
 
 		 if($try = $maxTry) then
-
 			local $sum[2]
 			$sum[0] = 0
 			$sum[1] = 0
@@ -219,17 +201,14 @@ func getRedPos($maxTry = 10)
 EndFunc
 
 
-
 func pause()
    $paused = not $paused
-
    if $paused Then
 	  While $paused
 		 ToolTip('Script is "Paused"',0,0)
 		 Sleep(10)
 	  WEnd
    EndIf
-
 EndFunc
 
 func end()
