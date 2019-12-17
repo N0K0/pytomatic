@@ -52,7 +52,6 @@ getRedPos(1000000000000000000)
 $iteration = 0
 
 while true
-
    $iteration = $iteration + 1
    $activeWindow = WinGetHandle("[ACTIVE]")
    $mPos = MouseGetPos()
