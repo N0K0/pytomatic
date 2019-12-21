@@ -7,6 +7,10 @@ import win32con
 import logging
 import sys
 
+from pprint import pformat
+
+from pytomatic.actions.Helpers import to_pixel
+
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 
 
@@ -29,17 +33,18 @@ class WinHandler:
             win32.error: If the windowtitle is invalid
         """
 
-        if 'desktop:' in title_text.lower():
-            _, num = title_text.lower().split(':', 1)
-            num = int(num)
-            monitors = win32api.EnumDisplayMonitors()
-            tar_mon = monitors[num]
-            self.hwnd = tar_mon[1]
-            return self.hwnd
+        if title_text is not None:
+            if 'desktop:' in title_text.lower():
+                _, num = title_text.lower().split(':', 1)
+                num = int(num)
+                monitors = win32api.EnumDisplayMonitors()
+                tar_mon = monitors[num]
+                self.hwnd = tar_mon[1]
+                return self.hwnd
 
-        if title_text.lower() == "desktop":
-            self.hwnd = win32gui.GetDesktopWindow()
-            return self.hwnd
+            if title_text.lower() == "desktop":
+                self.hwnd = win32gui.GetDesktopWindow()
+                return self.hwnd
 
         child_hwnd = []
 
@@ -59,9 +64,7 @@ class WinHandler:
                         (hwnd_class == class_text and class_text is not None):
                     self.hwnd = hwnd
                     return hwnd
-
-            # logging.debug("Found parent with title/class {0}{1} at {2}".format(parent_title,parent_class,parent_hwnd))
-            # self.hwnd = win32gui.FindWindowEx(parent_hwnd,0,class_text,title_text)
+            logging.debug("Found parent with title/class {0}{1} at {2}".format(parent_title, parent_class, parent_hwnd))
         else:
             logging.debug("Where supplied title/class: {0}/{1}".format(str(title_text), str(class_text)))
             self.hwnd = win32gui.FindWindow(class_text, title_text)
@@ -96,7 +99,7 @@ class WinHandler:
         self.pycwnd = win32ui.CreateWindowFromHandle(hwnd)
         return self.pycwnd
 
-    def init_window(self, hwnd=None, pos=None, borderless=False, config=None):
+    def init_window(self, hwnd=None, pos=None, borderless=False):
         """
         At the moment only sets the window in the foreground and moves it to a posistion set in the config.
 
@@ -135,10 +138,20 @@ class WinHandler:
         if hwnd is None:
             hwnd = self.get_hwnd()
 
+        bbox = self.create_boundingbox(self.get_hwnd_by_title_class(title_text="desktop"))
+
+        if all(isinstance(elem, float) for elem in pos):
+            pos_tmp = list(to_pixel(pos[:2], bbox))
+            pos_part_2 = list(to_pixel(pos[2:], bbox))
+            pos_tmp.extend(pos_part_2)
+            pos = pos_tmp
+
         if len(pos) == 4:
+            logging.debug(f"Moving to the following pos (4): {str(pos[0])} {str(pos[1])} {str(pos[2])} {str(pos[3])}")
             win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
         if len(pos) == 2:
             win_size = self.get_bbox_size()
+            logging.debug(f"Moving to the following pos (2): {str(pos[0])} {str(pos[1])} {str(win_size[0])} {str(win_size[1])}")
             win32gui.MoveWindow(hwnd, pos[0], pos[1], win_size[0], win_size[1], 1)
 
     def hide_extra_ui(self, hwnd=None, remove=True):
@@ -252,16 +265,23 @@ class WinHandler:
 
         return scaled_box
 
-    def __init__(self, title=None, class_name=None, config=None):
+    def __init__(self, title=None, class_name=None, parent_title=None, parent_class=None):
         self.hwnd = None
         self.pycwnd = None
         self.bbox = None
 
         self.title = title
-        self.class_name = class_name
+        self.parent_title = parent_title
 
-        if self.title is not None or self.class_name is not None:
-            self.hwnd = self.get_hwnd_by_title_class(self.class_name, self.title)
+        self.class_name = class_name
+        self.parent_class_name = parent_class
+
+        if self.title is not None \
+                or self.class_name is not None \
+                or self.parent_title is not None \
+                or self.parent_class_name is not None:
+            self.hwnd = self.get_hwnd_by_title_class(self.class_name, self.title, self.parent_title,
+                                                     self.parent_class_name)
             self.pycwnd = self.make_pyc_wnd(self.hwnd)
             self.bbox = None
         else:
@@ -308,12 +328,12 @@ class WinHandler:
 
         return translated
 
-    def set_target(self, title_name=None, class_name=None, parent_title=None, parent_class=None):
+    def set_target(self, title_text=None, class_name=None, parent_title=None, parent_class=None):
         logging.debug('Setting target:\n\tTitle: {1}\n\tClass: {0}\n\tParent title:{2}\n\tParent class: {3}\n'
-                      .format(class_name, title_name, parent_title, parent_class))
-        self.hwnd = self.get_hwnd_by_title_class(class_name, title_name, parent_title, parent_class)
+                      .format(class_name, title_text, parent_title, parent_class))
+        self.hwnd = self.get_hwnd_by_title_class(class_name, title_text, parent_title, parent_class)
         self.pycwnd = self.make_pyc_wnd(self.hwnd)
-        self.title = title_name
+        self.title = title_text
         self.class_name = class_name
 
 

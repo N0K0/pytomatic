@@ -1,10 +1,10 @@
 import time
 import win32api
-from ctypes import windll
 
 import win32con
 import logging
-import sys
+
+from pytomatic.actions.Helpers import to_pixel
 
 FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 
@@ -32,7 +32,7 @@ class MouseMovement:
         hwnd = self.win_handler.get_hwnd()
 
         if all(isinstance(elem, float) for elem in coords):
-            coords = self.to_pixel(coords)
+            coords = to_pixel(self.win_handler, coords)
 
         logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
 
@@ -81,7 +81,7 @@ class MouseMovement:
             raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
 
         if all(isinstance(elem, float) for elem in coords):
-            coords = self.to_pixel(coords)
+            coords = to_pixel(self.win_handler, coords)
         x = coords[0]
         y = coords[1]
 
@@ -107,13 +107,13 @@ class MouseMovement:
         """
 
         if all(isinstance(elem, float) for elem in [x, y]):
-            x, y = self.to_pixel([x, y])
+            x, y = to_pixel(self.win_handler, [x, y])
 
         return self.click([self._last_x + x, self._last_y + y], button)
 
     def move(self, coords, button=None):
         if all(isinstance(elem, float) for elem in coords):
-            coords = self.to_pixel(coords)
+            coords = to_pixel(self.win_handler, coords)
 
         if button == None:
             _button_state = 0
@@ -134,10 +134,10 @@ class MouseMovement:
         hwnd = self.win_handler.get_hwnd()
 
         if all(isinstance(elem, float) for elem in start):
-            start = self.to_pixel(start)
+            start = to_pixel(self.win_handler, start)
 
         if all(isinstance(elem, float) for elem in end):
-            end = self.to_pixel(end)
+            end = to_pixel(self.win_handler, end)
 
         step_x = (float(end[0] - start[0])) / steps
         step_y = (float(end[1] - start[1])) / steps
@@ -176,35 +176,13 @@ class MouseMovement:
         self._last_x = x
         self._last_y = y
 
+
+    # TODO: Move into common folder, make it accept bbox too
     def to_ratio(self, coords):
         size_vertical, size_horizontal = self.win_handler.get_bbox_size()
 
         x, y = coords[0] / size_horizontal, coords[1] / size_vertical
         return float(x), float(y)
-
-    def to_pixel(self, coords, bbox=None):
-        """
-        Args:
-            coords (touple): a pair of floating point numbers between 0.0 and 1.0
-                representing a percentage of the screen in the x/y directions
-            bbox (touple):
-        Returns:
-            touple: a pair of integers representing the actual coordinates in
-                the form of pixels
-        """
-
-        if bbox is None:
-            bbox = self.win_handler.create_boundingbox()
-            size_vertical, size_horizontal = self.win_handler.get_bbox_size()
-        else:
-            size_vertical = bbox[2] - bbox[0]
-            size_horizontal = bbox[3] - bbox[1]
-
-        x, y = coords[0] * size_vertical, coords[1] * size_horizontal
-
-        logging.debug("To Pixel: {} -> {} in the box {}".format(coords, (x, y), bbox))
-
-        return int(x), int(y)
 
     def click_centre(self, bbox, button="left"):
         return self.click()
