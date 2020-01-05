@@ -70,14 +70,17 @@ class MouseMovement:
 
         l_param = win32api.MAKELONG(x, y)
 
-        win32api.SendMessage(hwnd, win32con.WM_MOUSEMOVE, 0, l_param)
-
+        ret = win32api.SendMessage(hwnd, win32con.WM_MOUSEMOVE, 0, l_param)
+        logging.debug(f"Mouse move status: {ret}")
         time.sleep(0.1)
-        win32api.SendMessage(hwnd, _button_down, _button_state, l_param)
+        ret = win32api.SendMessage(hwnd, _button_down, _button_state, l_param)
+        logging.debug(f"Mouse down status: {ret}")
+
         time.sleep(0.05)
 
         if not hold:  # Do not release the button if hold is true
-            win32api.SendMessage(hwnd, _button_up, 0, l_param)
+            ret = win32api.SendMessage(hwnd, _button_up, 0, l_param)
+            logging.debug(f"Mouse up status: {ret}")
 
         self._last_x = x
         self._last_y = y
@@ -160,7 +163,6 @@ class MouseMovement:
         win32api.SendMessage(hwnd, _button_up, 0, l_param)
         self._last_x = x
         self._last_y = y
-
 
     # TODO: Move into common folder, make it accept bbox too
     def to_ratio(self, coords):
