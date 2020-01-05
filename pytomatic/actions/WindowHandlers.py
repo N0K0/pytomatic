@@ -18,7 +18,8 @@ FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 
 
 class WinHandler:
-    def get_hwnd_by_title_class(self, class_text=None, title_text=None, parent_title=None, parent_class=None):
+    def get_hwnd_by_title_class(self, class_text=None, title_text=None, parent_title=None, parent_class=None,
+                                save=True):
 
         """ Returns a windows window_handler
 
@@ -39,12 +40,16 @@ class WinHandler:
                 num = int(num)
                 monitors = win32api.EnumDisplayMonitors()
                 tar_mon = monitors[num]
-                self.hwnd = tar_mon[1]
-                return self.hwnd
+                if save:
+                    self.hwnd = tar_mon[1]
+
+                return tar_mon[1]
 
             if title_text.lower() == "desktop":
-                self.hwnd = win32gui.GetDesktopWindow()
-                return self.hwnd
+                desktop = win32gui.GetDesktopWindow()
+                if save:
+                    self.hwnd = desktop
+                return desktop
 
         child_hwnd = []
 
@@ -60,14 +65,18 @@ class WinHandler:
             for hwnd in child_hwnd:
                 hwnd_title = win32gui.GetWindowText(hwnd)
                 hwnd_class = win32gui.GetClassName(hwnd)
-                if (hwnd_title == title_text and title_text is not None) or \
-                        (hwnd_class == class_text and class_text is not None):
-                    self.hwnd = hwnd
+
+                if (hwnd_title == title_text or title_text is None) and \
+                    (hwnd_class == class_text or class_text is None):
+                    if save:
+                        self.hwnd = hwnd
                     return hwnd
             logging.debug("Found parent with title/class {0}{1} at {2}".format(parent_title, parent_class, parent_hwnd))
         else:
             logging.debug("Where supplied title/class: {0}/{1}".format(str(title_text), str(class_text)))
-            self.hwnd = win32gui.FindWindow(class_text, title_text)
+            window = win32gui.FindWindow(class_text, title_text)
+            if save:
+                self.hwnd = window
 
         if self.hwnd == 0:
             raise ValueError('Unable to find a window with that title or class')
@@ -138,7 +147,7 @@ class WinHandler:
         if hwnd is None:
             hwnd = self.get_hwnd()
 
-        bbox = self.create_boundingbox(self.get_hwnd_by_title_class(title_text="desktop"))
+        bbox = self.create_boundingbox(self.get_hwnd_by_title_class(title_text="desktop", save=False))
 
         if all(isinstance(elem, float) for elem in pos):
             pos_tmp = list(to_pixel(pos[:2], bbox))
@@ -151,7 +160,8 @@ class WinHandler:
             win32gui.MoveWindow(hwnd, pos[0], pos[1], pos[2], pos[3], 1)
         if len(pos) == 2:
             win_size = self.get_bbox_size()
-            logging.debug(f"Moving to the following pos (2): {str(pos[0])} {str(pos[1])} {str(win_size[0])} {str(win_size[1])}")
+            logging.debug(
+                f"Moving to the following pos (2): {str(pos[0])} {str(pos[1])} {str(win_size[0])} {str(win_size[1])}")
             win32gui.MoveWindow(hwnd, pos[0], pos[1], win_size[0], win_size[1], 1)
 
     def hide_extra_ui(self, hwnd=None, remove=True):
@@ -284,6 +294,8 @@ class WinHandler:
                                                      self.parent_class_name)
             self.pycwnd = self.make_pyc_wnd(self.hwnd)
             self.bbox = None
+            logging.debug(f"Hwnd: {hex(self.hwnd)}")
+
         else:
             logging.warning("NOTE: No valid initializers for the window handler, user set_target() to set a window")
 
@@ -335,6 +347,7 @@ class WinHandler:
         self.pycwnd = self.make_pyc_wnd(self.hwnd)
         self.title = title_text
         self.class_name = class_name
+        logging.debug(f"Hwnd: {hex(self.hwnd)}")
 
 
 if __name__ == '__main__':
