@@ -13,32 +13,11 @@ FORMAT = "%(levelname)s-%(module)s-Line %(lineno)s: %(message)s"
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
 class MouseMovement:
-    def click(self, coords, button="left", hold=False):
+    def resolve_mouse_events(self, button="left"):
         """
-        Args:
-            coords (touple): coords takes two arguments, either both float
-                or int. If float is supplied, it will try to treat them as
-                percentages. X, Y
-            button (string): either "left","right" or "middle". Decides what button that
-                will be sent to the running program.
-
-        Returns:
-            bool: True if successful, False otherwise.
-
-        Raises:
-            SyntaxError: The button param does not contain "left","right og "middle"
+        :param button: which button
+        :return: _button_state, _button_down, _button_up
         """
-
-        hwnd = self.win_handler.get_hwnd()
-
-        if all(isinstance(elem, float) for elem in coords):
-            coords = to_pixel(self.win_handler, coords)
-
-        logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
-
-        x = coords[0]
-        y = coords[1]
-
         if "right" in button.lower():
             _button_state = win32con.MK_RBUTTON
             _button_down = win32con.WM_RBUTTONDOWN
@@ -53,6 +32,41 @@ class MouseMovement:
             _button_up = win32con.WM_MBUTTONUP
         else:
             raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
+
+        return _button_state, _button_down, _button_up
+
+    def click_new(self, coords, button="left", hold=False):
+        mouse_evt = win32api.mouse_event()
+
+    def click(self, coords, button="left", hold=False):
+        """
+        Args:
+            coords (touple): coords takes two arguments, either both float
+                or int. If float is supplied, it will try to treat them as
+                percentages. X, Y
+            button (string): either "left","right" or "middle". Decides what button that
+                will be sent to the running program.
+
+        Returns:
+            bool: True if successful, False otherwise.
+
+        Raises:
+            SyntaxError: The button param does not contain "left","right og "middle"
+            :param hold:
+        """
+
+        hwnd = self.win_handler.get_hwnd()
+        bbox = self.win_handler.get_bbox_size()
+
+        if all(isinstance(elem, float) for elem in coords):
+            coords = to_pixel(coords, bbox)
+
+        logging.debug("Trying to click on:" + str(coords) + " with " + button + " button")
+
+        x = coords[0]
+        y = coords[1]
+
+        _button_state, _button_down, _button_up = self.resolve_mouse_events(button.lower())
 
         l_param = win32api.MAKELONG(x, y)
 
@@ -71,14 +85,7 @@ class MouseMovement:
 
     def release_button(self, coords, button="left"):
 
-        if "right" in button.lower():
-            _button_up = win32con.WM_RBUTTONUP
-        elif "left" in button.lower():
-            _button_up = win32con.WM_LBUTTONUP
-        elif "middle" in button.lower():
-            _button_up = win32con.WM_MBUTTONUP
-        else:
-            raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
+        _button_state, _button_down, _button_up = self.resolve_mouse_events(button.lower())
 
         if all(isinstance(elem, float) for elem in coords):
             coords = to_pixel(self.win_handler, coords)
@@ -107,26 +114,17 @@ class MouseMovement:
         """
 
         if all(isinstance(elem, float) for elem in [x, y]):
-            x, y = to_pixel(self.win_handler, [x, y])
+            bbox = self.win_handler.create_boundingbox()
+            x,y = to_pixel([x,y],bbox)
 
         return self.click([self._last_x + x, self._last_y + y], button)
 
-    def move(self, coords, button=None):
+    def move(self, coords, button="left"):
         if all(isinstance(elem, float) for elem in coords):
-            coords = to_pixel(self.win_handler, coords)
+            bbox = self.win_handler.create_boundingbox()
+            coords = to_pixel(coords,bbox)
 
-        if button == None:
-            _button_state = 0
-        elif "right" in button.lower():
-            _button_state = win32con.MK_RBUTTON
-        elif "left" in button.lower():
-            _button_state = win32con.MK_LBUTTON
-        elif "middle" in button.lower():
-            _button_state = win32con.MK_MBUTTON
-
-        else:
-            raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
-
+        _button_state, _button_down, _button_up = self.resolve_mouse_events(button.lower())
         l_param = win32api.MAKELONG(coords[0], coords[1])
         win32api.PostMessage(self.win_handler.get_hwnd(), win32con.WM_MOUSEMOVE, _button_state, l_param)
 
@@ -142,20 +140,7 @@ class MouseMovement:
         step_x = (float(end[0] - start[0])) / steps
         step_y = (float(end[1] - start[1])) / steps
 
-        if "right" in button.lower():
-            _button_state = win32con.MK_RBUTTON
-            _button_down = win32con.WM_RBUTTONDOWN
-            _button_up = win32con.WM_RBUTTONUP
-        elif "left" in button.lower():
-            _button_state = win32con.MK_LBUTTON
-            _button_down = win32con.WM_LBUTTONDOWN
-            _button_up = win32con.WM_LBUTTONUP
-        elif "middle" in button.lower():
-            _button_state = win32con.MK_MBUTTON
-            _button_down = win32con.WM_MBUTTONDOWN
-            _button_up = win32con.WM_MBUTTONUP
-        else:
-            raise SyntaxError('"Button" needs to contain "left", "right" or "middle"')
+        _button_state, _button_down, _button_up = self.resolve_mouse_events(button.lower())
 
         self.move(start)
         l_param = win32api.MAKELONG(start[0], start[1])
