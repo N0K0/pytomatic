@@ -14,7 +14,7 @@ from pprint import pprint
 
 logging.basicConfig(level=logging.WARNING)
 
-ATK_COOLDOWN_AMOUNT = 10  # Number of ticks waiting between attacks
+ATK_COOLDOWN_AMOUNT = 8  # Number of ticks waiting between attacks
 
 
 class Sfws:
@@ -36,13 +36,13 @@ class Sfws:
     def find_window(self):
         print("Finding window")
         self.win_hwnd = WindowHandlers.WinHandler()
-        self.win_hwnd.set_target("BlueStacks Android PluginAndroid", parent_title="BlueStacks")
+        self.win_hwnd.set_target(title_text="ScreenBoardClassWindow", parent_class="Qt5QWindowIcon")
         self.mouse = MouseMovement.MouseMovement(self.win_hwnd)
         print(self.win_hwnd)
         print(self.win_hwnd.get_bbox())
         return self.win_hwnd
 
-    def fetch_cnt_pos_2d(self,cnt):
+    def fetch_cnt_pos_2d(self, cnt):
         pos = []
         for c in cnt:
             m = cv2.moments(c)
@@ -244,7 +244,13 @@ class Sfws:
         # How do you figure out if im currently in an ad or in the game?
 
     def main(self):
+
         window = self.find_window()
+
+        # Dropping init since the window in question is super wierd..
+        # win_pos = (0.6, 0.0, 1.0, 0.5)
+        # win_pos = self.mouse.to_pixel(win_pos)
+        # window.init_window(pos=win_pos)
         bbox = window.get_bbox()
         self.pxs = PixelSearch.PixelSearch(window)
         while True:
