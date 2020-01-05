@@ -23,9 +23,9 @@ def waiting_bar(time, steps=20):
 def to_pixel(coords, bbox) -> tuple:
     """
     Args:
-        coords (touple): a pair of floating point numbers between 0.0 and 1.0
+        coords (tuple): a pair of floating point numbers between 0.0 and 1.0
             representing a percentage of the screen in the x/y directions
-        bbox (touple):
+        bbox (tuple):
     Returns:
         touple: a pair of integers representing the actual coordinates in
             the form of pixels
@@ -34,8 +34,12 @@ def to_pixel(coords, bbox) -> tuple:
     if len(coords) != 2:
         raise ValueError("To Pixel takes only pairs")
 
-    size_vertical = bbox[2] - bbox[0]
-    size_horizontal = bbox[3] - bbox[1]
+    if len(bbox) == 4:
+        size_vertical = bbox[2] - bbox[0]
+        size_horizontal = bbox[3] - bbox[1]
+    else:
+        size_vertical = bbox[0]
+        size_horizontal = bbox[1]
 
     x, y = coords[0] * size_vertical, coords[1] * size_horizontal
 
